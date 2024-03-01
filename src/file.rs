@@ -15,7 +15,7 @@ pub fn write_string_to_file(file_path: &str, contents: &String) -> std::io::Resu
 }
 
 pub fn create_blank_file_and_overwrite(file_path: &str) -> Result<()> {
-    if Path::new("./out/os/main.json").exists() {
+    if Path::new(file_path).exists() {
         fs::remove_file(file_path)?;
     }
     fs::File::create(file_path)?;
