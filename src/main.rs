@@ -25,7 +25,7 @@ fn main() {
 
         for entry in entry_vec {
             //os_entry_vec.push(entry.clone());
-            os_entry_key_vec.push(entry.clone().appledbApiUrl);
+            os_entry_key_vec.push(entry.clone().key.replace(';', "/"));
 
             let out_json = serde_json::to_string(&entry).expect("Failed to convert struct to JSON");
             let output = ["./out/os/", &entry.key.replace(';', "/"), ".json"].concat();

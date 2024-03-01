@@ -217,8 +217,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 let paths = [os_str, "/", unique_build, ".html"]
                     .concat()
                     .replace(' ', "-");
-                let url =
-                    Url::parse("https://apiappledb.dev/firmware/").expect("Failed to parse URL");
+                let url = Url::parse("https://appledb.dev/firmware/").expect("Failed to parse URL");
                 let url = url.join(&paths).expect("Failed to join URL");
                 entry.appledbWebUrl = url.as_str().to_string();
             }
@@ -231,10 +230,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     .replace(' ', "-");
                 let url = Url::parse("https://api.appledb.dev/os/").expect("Failed to parse URL");
                 let url = url.join(&paths).expect("Failed to join URL");
-                entry.appledbApiUrl = url
-                    .as_str()
-                    .to_string()
-                    .replace("https://api.appledb.dev", "");
+                entry.appledbApiUrl = url.as_str().to_string()
             }
             "deviceMap" => entry.deviceMap = json::get_string_array(json, key),
             "osMap" => entry.osMap = json::get_string_array(json, key),
