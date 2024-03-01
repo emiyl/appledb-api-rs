@@ -1,4 +1,4 @@
-name: deploy
+name: Rust Actions
 
 on:
   push:
@@ -8,17 +8,58 @@ on:
 
 jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           # fetch all commits to get last updated time or other git log info
           fetch-depth: 0
           submodules: recursive
 
-      - uses: ATiltedTree/setup-rust@v1
+      - name: Setup Rust
+        uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
           components: clippy
 
-      - run: cargo clippy
+      - name: Lint
+        run: cargo clippy
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # fetch all commits to get last updated time or other git log info
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+          components: clippy
+
+      - name: Deploy
+        run: cargo run --release
+
+      - name: Create CNAME
+        run: echo "api.emiyl.com" > out/CNAME
+
+      - name: Deploy to GitHub Pages
+        if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'workflow_dispatch'
+        uses: crazy-max/ghaction-github-pages@v2
+        with:
+          # deploy to gh-pages branch
+          target_branch: gh-pages
+          # deploy the default output dir of VuePress
+          build_dir: out
+        env:
+          # @see https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
