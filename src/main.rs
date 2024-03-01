@@ -1,8 +1,6 @@
 mod file;
 mod json;
 mod os_file;
-use debug_print::debug_println as dprintln;
-use serde_json::Value;
 use walkdir::WalkDir;
 
 fn main() {
