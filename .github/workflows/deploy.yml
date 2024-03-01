@@ -46,6 +46,9 @@ jobs:
           rust-version: stable
           components: clippy
 
+      - name: Build
+        run: cargo build --release
+
       - name: Deploy
         run: cargo run --release
 
