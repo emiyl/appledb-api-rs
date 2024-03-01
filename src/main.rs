@@ -1,7 +1,6 @@
 mod file;
 mod json;
 mod os_file;
-use std::path::Path;
 use std::{fs, io::Write};
 use walkdir::WalkDir;
 
