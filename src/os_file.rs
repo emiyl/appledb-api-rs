@@ -126,11 +126,8 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.key = key;
                 } else {
                     // Else, generate from osStr and build
-                    let mut build = entry.build.clone();
-                    if !json_keys.contains(&&"build".to_string()) {
-                        build = json::get_string(json, "version");
-                    }
-                    entry.key = [&entry.osStr, ";", &build].concat();
+                    let unique_build = entry.uniqueBuild.clone();
+                    entry.key = [&entry.osStr, ";", &unique_build].concat();
                 }
             }
             "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, key),
@@ -212,9 +209,8 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
             }
             "appledbWebUrl" => {
                 // Create the URL
-                let os_str = &entry.osStr;
-                let unique_build = &entry.uniqueBuild;
-                let paths = [os_str, "/", unique_build, ".html"]
+                let key = &entry.key;
+                let paths = [key.replace(';', "/"), ".html".to_string()]
                     .concat()
                     .replace(' ', "-");
                 let url = Url::parse("https://appledb.dev/firmware/").expect("Failed to parse URL");
@@ -223,9 +219,8 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
             }
             "appledbApiUrl" => {
                 // Create the URL
-                let os_str = &entry.osStr;
-                let unique_build = &entry.uniqueBuild;
-                let paths = [os_str, "/", unique_build, ".json"]
+                let key = &entry.key;
+                let paths = [key.replace(';', "/"), ".json".to_string()]
                     .concat()
                     .replace(' ', "-");
                 let url = Url::parse("https://api.emiyl.com/os/").expect("Failed to parse URL");
@@ -345,7 +340,11 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 let mut sdk_mut = sdk.clone();
                 sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + "-SDK");
                 sdk_mut["build"] = Value::String(json::get_string(sdk, "build"));
-                sdk_mut["uniqueBuild"] = Value::String(json::get_string(sdk, "build") + "-SDK");
+                let mut unique_build = json::get_string(sdk, "build");
+                if !json::get_object_keys(sdk).contains(&&"build".to_string()) {
+                    unique_build = json::get_string(sdk, "version")
+                }
+                sdk_mut["uniqueBuild"] = Value::String(unique_build + "-SDK");
                 sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
                 let mut device_map_string = json::get_string(sdk, "osStr") + "-SDK";
                 if device_map_string.contains("OS X") {
