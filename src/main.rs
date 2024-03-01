@@ -28,7 +28,7 @@ fn main() {
             os_entry_key_vec.push(entry.clone().appledbApiUrl);
 
             let out_json = serde_json::to_string(&entry).expect("Failed to convert struct to JSON");
-            let output = ["./out/os/", &entry.key.replace(";", "/"), ".json"].concat();
+            let output = ["./out/os/", &entry.key.replace(';', "/"), ".json"].concat();
             file::write_string_to_file(&output, out_json).expect("Failed to write JSON");
 
             file_count += 1;

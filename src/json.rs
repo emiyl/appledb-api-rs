@@ -6,8 +6,8 @@ pub fn parse_json(json_string: &str) -> Value {
 
 pub fn get_object_keys(serde_value: &Value) -> Vec<&String> {
     let object = serde_value.as_object();
-    if object.is_some() {
-        object.unwrap().keys().collect()
+    if let Some(value) = object {
+        value.keys().collect()
     } else {
         if !serde_value.is_null() {
             println!(
@@ -35,7 +35,7 @@ fn convert_serde_value_to_string(serde_value: &Value) -> String {
 }
 
 pub fn get_string_array(json: &Value, key: &str) -> Vec<String> {
-    let json_keys = get_object_keys(&json);
+    let json_keys = get_object_keys(json);
     if json_keys.contains(&&key.to_string()) {
         let array = json[key].as_array().unwrap();
         let mut vec_string = Vec::new();
@@ -49,17 +49,16 @@ pub fn get_string_array(json: &Value, key: &str) -> Vec<String> {
 }
 
 pub fn get_string(json: &Value, key: &str) -> String {
-    let json_keys = get_object_keys(&json);
+    let json_keys = get_object_keys(json);
     if json_keys.contains(&&key.to_string()) {
-        let ret = convert_serde_value_to_string(&json[key]);
-        ret
+        convert_serde_value_to_string(&json[key])
     } else {
         "".to_string()
     }
 }
 
 pub fn get_bool(json: &Value, key: &str) -> bool {
-    let json_keys = get_object_keys(&json);
+    let json_keys = get_object_keys(json);
     if json_keys.contains(&&key.to_string()) {
         json[key].as_bool().unwrap()
     } else {
@@ -68,7 +67,7 @@ pub fn get_bool(json: &Value, key: &str) -> bool {
 }
 
 pub fn get_u64(json: &Value, key: &str) -> u64 {
-    let json_keys = get_object_keys(&json);
+    let json_keys = get_object_keys(json);
     if json_keys.contains(&&key.to_string()) && json[key].is_u64() {
         if json[key].is_u64() {
             return json[key].as_u64().unwrap();

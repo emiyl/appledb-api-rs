@@ -80,33 +80,33 @@ pub struct OsEntry {
 
 pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
     let mut entry: OsEntry = Default::default();
-    let json_keys = json::get_object_keys(&json);
+    let json_keys = json::get_object_keys(json);
 
     for key in OsEntry::FIELD_NAMES_AS_ARRAY {
         match key {
-            "osStr" => entry.osStr = json::get_string(&json, key),
+            "osStr" => entry.osStr = json::get_string(json, key),
             "version" => {
                 if json_keys.contains(&&key.to_string()) {
-                    entry.version = json::get_string(&json, key)
+                    entry.version = json::get_string(json, key)
                 } else {
-                    entry.version = json::get_string(&json, "build")
+                    entry.version = json::get_string(json, "build")
                 }
             }
             "safariVersion" => {
                 if json[key].is_array() {
-                    entry.safariVersion = json::get_string_array(&json, key)
+                    entry.safariVersion = json::get_string_array(json, key)
                 } else if json[key].is_string() {
-                    entry.safariVersion = vec![json::get_string(&json, key)]
+                    entry.safariVersion = vec![json::get_string(json, key)]
                 }
             }
             "build" => {
-                let build = json::get_string(&json, key);
+                let build = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     entry.build = build;
                 }
             }
             "uniqueBuild" => {
-                let unique_build = json::get_string(&json, key);
+                let unique_build = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If uniqueBuild is defined in JSON, use JSON value
                     entry.uniqueBuild = unique_build;
@@ -120,7 +120,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 }
             }
             "key" => {
-                let key = json::get_string(&json, key);
+                let key = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If key is defined in JSON, use JSON value
                     entry.key = key;
@@ -128,16 +128,16 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     // Else, generate from osStr and build
                     let mut build = entry.build.clone();
                     if !json_keys.contains(&&"build".to_string()) {
-                        build = json::get_string(&json, "version");
+                        build = json::get_string(json, "version");
                     }
                     entry.key = [&entry.osStr, ";", &build].concat();
                 }
             }
-            "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(&json, key),
-            "bridgeOSBuild" => entry.bridgeOSBuild = json::get_string(&json, key),
-            "buildTrain" => entry.buildTrain = json::get_string(&json, key),
+            "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, key),
+            "bridgeOSBuild" => entry.bridgeOSBuild = json::get_string(json, key),
+            "buildTrain" => entry.buildTrain = json::get_string(json, key),
             "released" => {
-                let released = json::get_string(&json, key);
+                let released = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If released is defined in JSON, use JSON value
                     entry.released = released;
@@ -146,11 +146,11 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.released = "1970-01-01".to_string();
                 }
             }
-            "rc" => entry.rc = json::get_bool(&json, key),
-            "beta" => entry.beta = json::get_bool(&json, key),
-            "rsr" => entry.rsr = json::get_bool(&json, key),
-            "internal" => entry.internal = json::get_bool(&json, key),
-            "hideFromLatestVersions" => entry.hideFromLatestVersions = json::get_bool(&json, key),
+            "rc" => entry.rc = json::get_bool(json, key),
+            "beta" => entry.beta = json::get_bool(json, key),
+            "rsr" => entry.rsr = json::get_bool(json, key),
+            "internal" => entry.internal = json::get_bool(json, key),
+            "hideFromLatestVersions" => entry.hideFromLatestVersions = json::get_bool(json, key),
             "preinstalled" => {
                 if !json_keys.contains(&&key.to_string()) {
                     continue;
@@ -163,16 +163,16 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     // If preinstalled is true, use deviceMap as the preinstalled Array
                     // Else, leave as default
                     if preinstalled_bool {
-                        entry.preinstalled = json::get_string_array(&json, "deviceMap");
+                        entry.preinstalled = json::get_string_array(json, "deviceMap");
                     }
                 } else if preinstalled.is_array() {
                     // If preinstalled is an array, use that value
-                    entry.preinstalled = json::get_string_array(&json, key);
+                    entry.preinstalled = json::get_string_array(json, key);
                 }
             }
-            "notes" => entry.notes = json::get_string(&json, key),
-            "releaseNotes" => entry.releaseNotes = json::get_string(&json, key),
-            "securityNotes" => entry.securityNotes = json::get_string(&json, key),
+            "notes" => entry.notes = json::get_string(json, key),
+            "releaseNotes" => entry.releaseNotes = json::get_string(json, key),
+            "securityNotes" => entry.securityNotes = json::get_string(json, key),
             "ipd" => {
                 // Clones the ipd_key object in the JSON to a BTreeMap object
                 let ipd_key_array = json::get_object_keys(&json[key]);
@@ -216,7 +216,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 let unique_build = &entry.uniqueBuild;
                 let paths = [os_str, "/", unique_build, ".html"]
                     .concat()
-                    .replace(" ", "-");
+                    .replace(' ', "-");
                 let url =
                     Url::parse("https://apiappledb.dev/firmware/").expect("Failed to parse URL");
                 let url = url.join(&paths).expect("Failed to join URL");
@@ -228,7 +228,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 let unique_build = &entry.uniqueBuild;
                 let paths = [os_str, "/", unique_build, ".json"]
                     .concat()
-                    .replace(" ", "-");
+                    .replace(' ', "-");
                 let url = Url::parse("https://api.appledb.dev/os/").expect("Failed to parse URL");
                 let url = url.join(&paths).expect("Failed to join URL");
                 entry.appledbApiUrl = url
@@ -236,8 +236,8 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     .to_string()
                     .replace("https://api.appledb.dev", "");
             }
-            "deviceMap" => entry.deviceMap = json::get_string_array(&json, key),
-            "osMap" => entry.osMap = json::get_string_array(&json, key),
+            "deviceMap" => entry.deviceMap = json::get_string_array(json, key),
+            "osMap" => entry.osMap = json::get_string_array(json, key),
             "sources" => {
                 if !json_keys.contains(&&key.to_string()) {
                     continue;
@@ -290,7 +290,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                             }
                             "hashes" => {
                                 let hash_object = &source[source_key];
-                                let hash_key_array = json::get_object_keys(&hash_object);
+                                let hash_key_array = json::get_object_keys(hash_object);
                                 let mut hash_map: BTreeMap<String, String> = BTreeMap::new();
                                 for hash_key in hash_key_array {
                                     hash_map.insert(
@@ -328,7 +328,7 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
         let mut duplicate_entries_vec: Vec<Value> = Vec::new();
         for entry in create_duplicate_entries_array {
             let mut duplicate_json = json_vec[0].clone();
-            let entry_keys = json::get_object_keys(&entry);
+            let entry_keys = json::get_object_keys(entry);
             for key in entry_keys {
                 duplicate_json[key] = entry[key].clone();
             }
@@ -347,10 +347,10 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 }
 
                 let mut sdk_mut = sdk.clone();
-                sdk_mut["version"] = Value::String(json::get_string(&sdk, "version") + "-SDK");
-                sdk_mut["uniqueBuild"] = Value::String(json::get_string(&sdk, "build") + "-SDK");
-                sdk_mut["released"] = Value::String(json::get_string(&sdk, "released"));
-                let mut device_map_string = json::get_string(&sdk, "osStr") + "-SDK";
+                sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + "-SDK");
+                sdk_mut["uniqueBuild"] = Value::String(json::get_string(sdk, "build") + "-SDK");
+                sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
+                let mut device_map_string = json::get_string(sdk, "osStr") + "-SDK";
                 if device_map_string.contains("OS X") {
                     device_map_string = "macOS-SDK".to_string()
                 }
