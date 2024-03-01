@@ -344,6 +344,7 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
 
                 let mut sdk_mut = sdk.clone();
                 sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + "-SDK");
+                sdk_mut["build"] = Value::String(json::get_string(sdk, "build"));
                 sdk_mut["uniqueBuild"] = Value::String(json::get_string(sdk, "build") + "-SDK");
                 sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
                 let mut device_map_string = json::get_string(sdk, "osStr") + "-SDK";
