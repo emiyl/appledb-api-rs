@@ -353,6 +353,7 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 }
                 sdk_mut["deviceMap"] = Value::Array(vec![Value::String(device_map_string)]);
                 sdk_mut["sdk"] = Value::Bool(true);
+                sdk_mut["beta"] = Value::Bool(json::get_bool(sdk, "beta"));
                 sdk_entries_vec.push(sdk_mut);
             }
             json_vec.append(&mut sdk_entries_vec);
