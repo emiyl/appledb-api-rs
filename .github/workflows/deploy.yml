@@ -52,6 +52,9 @@ jobs:
       - name: Deploy
         run: cargo run --release
 
+      - name: Remove all >100MB files
+        run: find -X ./out -size +100M -not -path './.git/*' | xargs rm
+
       - name: Create CNAME
         run: echo "api.emiyl.com" > out/CNAME
 
