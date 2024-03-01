@@ -228,7 +228,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 let paths = [os_str, "/", unique_build, ".json"]
                     .concat()
                     .replace(' ', "-");
-                let url = Url::parse("https://api.appledb.dev/os/").expect("Failed to parse URL");
+                let url = Url::parse("https://api.emiyl.com/os/").expect("Failed to parse URL");
                 let url = url.join(&paths).expect("Failed to join URL");
                 entry.appledbApiUrl = url.as_str().to_string()
             }
