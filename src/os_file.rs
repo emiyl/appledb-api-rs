@@ -15,7 +15,6 @@ structstruck::strike! {
         version: String,
         safariVersion: Vec<String>,
         build: String,
-        uniqueBuild: String,
         pub key: String,
         embeddedOSBuild: String,
         bridgeOSBuild: String,
@@ -33,11 +32,12 @@ structstruck::strike! {
         ipd: BTreeMap<String, String>,
         appledbWebImage: struct OsEntryAppleDBWebImage {
             id: String,
-            align: #[allow(non_camel_case_types)] enum OsEntryAppleDBWebImageAlign {
-                #[default]
-                left,
-                right,
-            },
+            align: #[allow(non_camel_case_types)]
+                enum OsEntryAppleDBWebImageAlign {
+                    #[default]
+                    left,
+                    right,
+                },
         },
         appledbWebUrl: String,
         pub appledbApiUrl: String,
@@ -70,13 +70,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
     for key in OsEntry::FIELD_NAMES_AS_ARRAY {
         match key {
             "osStr" => entry.osStr = json::get_string(json, key),
-            "version" => {
-                if json_keys.contains(&&key.to_string()) {
-                    entry.version = json::get_string(json, key)
-                } else {
-                    entry.version = json::get_string(json, "build")
-                }
-            }
+            "version" => entry.version = json::get_string(json, key),
             "safariVersion" => {
                 if json[key].is_array() {
                     entry.safariVersion = json::get_string_array(json, key)
@@ -84,35 +78,20 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.safariVersion = vec![json::get_string(json, key)]
                 }
             }
-            "build" => {
-                let build = json::get_string(json, key);
-                if json_keys.contains(&&key.to_string()) {
-                    entry.build = build;
-                }
-            }
-            "uniqueBuild" => {
-                let unique_build = json::get_string(json, key);
-                if json_keys.contains(&&key.to_string()) {
-                    // If uniqueBuild is defined in JSON, use JSON value
-                    entry.uniqueBuild = unique_build;
-                } else {
-                    // Else, generate from build number
-                    if json_keys.contains(&&"build".to_string()) {
-                        entry.uniqueBuild = entry.build.clone()
-                    } else {
-                        entry.uniqueBuild = entry.version.clone()
-                    }
-                }
-            }
+            "build" => entry.build = json::get_string(json, key),
             "key" => {
                 let key = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If key is defined in JSON, use JSON value
                     entry.key = key;
                 } else {
-                    // Else, generate from osStr and build
-                    let unique_build = entry.uniqueBuild.clone();
-                    entry.key = [&entry.osStr, ";", &unique_build].concat();
+                    // Else, generate from osStr and build/version
+                    let key_second_part = if json_keys.contains(&&"build".to_string()) {
+                        json::get_string(json, "build")
+                    } else {
+                        json::get_string(json, "version")
+                    };
+                    entry.key = [&entry.osStr, ";", &key_second_part, "-SDK"].concat();
                 }
             }
             "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, key),
@@ -325,11 +304,13 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 let mut sdk_mut = sdk.clone();
                 sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + "-SDK");
                 sdk_mut["build"] = Value::String(json::get_string(sdk, "build"));
-                let mut unique_build = json::get_string(sdk, "build");
+
+                let mut key_second_part = json::get_string(sdk, "build");
                 if !json::get_object_keys(sdk).contains(&&"build".to_string()) {
-                    unique_build = json::get_string(sdk, "version")
+                    key_second_part = json::get_string(sdk, "version")
                 }
-                sdk_mut["uniqueBuild"] = Value::String(unique_build + "-SDK");
+                sdk_mut["key"] =
+                    Value::String(json::get_string(sdk, "osStr") + ";" + &key_second_part + "-SDK");
                 sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
                 let mut device_map_string = json::get_string(sdk, "osStr") + "-SDK";
                 if device_map_string.contains("OS X") {
