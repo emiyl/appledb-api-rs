@@ -24,23 +24,26 @@ structstruck::strike! {
         beta: bool,
         rsr: bool,
         internal: bool,
-        hideFromLatestVersions: bool,
         preinstalled: Vec<String>,
         notes: String,
         releaseNotes: String,
         securityNotes: String,
         ipd: BTreeMap<String, String>,
-        appledbWebImage: struct OsEntryAppleDBWebImage {
-            id: String,
-            align: #[allow(non_camel_case_types)]
+        pub appledb: #[derive(FieldNamesAsArray)]
+        struct OsEntryAppleDB {
+            webImage: struct OsEntryAppleDBWebImage {
+                id: String,
+                align: #[allow(non_camel_case_types)]
                 enum OsEntryAppleDBWebImageAlign {
                     #[default]
                     left,
                     right,
                 },
+            },
+            webUrl: String,
+            pub apiUrl: String,
+            hideFromLatestVersions: bool
         },
-        appledbWebUrl: String,
-        pub appledbApiUrl: String,
         deviceMap: Vec<String>,
         osMap: Vec<String>,
         sources: Vec<struct OsEntrySource {
@@ -65,24 +68,24 @@ structstruck::strike! {
 
 pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
     let mut entry: OsEntry = Default::default();
-    let json_keys = json::get_object_keys(json);
+    let json_field_list = json::get_object_field_list(json);
 
-    for key in OsEntry::FIELD_NAMES_AS_ARRAY {
-        match key {
-            "osStr" => entry.osStr = json::get_string(json, key),
-            "version" => entry.version = json::get_string(json, key),
+    for field in OsEntry::FIELD_NAMES_AS_ARRAY {
+        match field {
+            "osStr" => entry.osStr = json::get_string(json, field),
+            "version" => entry.version = json::get_string(json, field),
             "safariVersion" => {
-                if json[key].is_array() {
-                    entry.safariVersion = json::get_string_array(json, key)
-                } else if json[key].is_string() {
-                    entry.safariVersion = vec![json::get_string(json, key)]
+                if json[field].is_array() {
+                    entry.safariVersion = json::get_string_array(json, field)
+                } else if json[field].is_string() {
+                    entry.safariVersion = vec![json::get_string(json, field)]
                 }
             }
-            "build" => entry.build = json::get_string(json, key),
+            "build" => entry.build = json::get_string(json, field),
             "key" => {
-                if json_keys.contains(&&key.to_string()) {
+                if json_field_list.contains(&&field.to_string()) {
                     // If key is defined in JSON, use JSON value
-                    let mut entry_key = json::get_string(json, key);
+                    let mut entry_key = json::get_string(json, field);
                     if !entry_key.starts_with(&entry.osStr) && !entry_key.ends_with('!') {
                         // If key doesn't start with osStr, and doesn't end with "!", then add osStr to the start
                         entry_key = [entry.osStr.clone(), ';'.to_string(), entry_key].concat()
@@ -92,9 +95,9 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.key = entry_key;
                 } else {
                     // Else, generate from osStr and uniqueBuild/build/version
-                    let key_second_part = if json_keys.contains(&&"uniqueBuild".to_string()) {
+                    let key_second_part = if json_field_list.contains(&&"uniqueBuild".to_string()) {
                         json::get_string(json, "uniqueBuild")
-                    } else if json_keys.contains(&&"build".to_string()) {
+                    } else if json_field_list.contains(&&"build".to_string()) {
                         json::get_string(json, "build")
                     } else {
                         json::get_string(json, "version")
@@ -102,12 +105,12 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.key = [&entry.osStr, ";", &key_second_part].concat();
                 }
             }
-            "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, key),
-            "bridgeOSBuild" => entry.bridgeOSBuild = json::get_string(json, key),
-            "buildTrain" => entry.buildTrain = json::get_string(json, key),
+            "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, field),
+            "bridgeOSBuild" => entry.bridgeOSBuild = json::get_string(json, field),
+            "buildTrain" => entry.buildTrain = json::get_string(json, field),
             "released" => {
-                let released = json::get_string(json, key);
-                if json_keys.contains(&&key.to_string()) {
+                let released = json::get_string(json, field);
+                if json_field_list.contains(&&field.to_string()) {
                     // If released is defined in JSON, use JSON value
                     entry.released = released;
                 } else {
@@ -115,17 +118,16 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     entry.released = "1970-01-01".to_string();
                 }
             }
-            "rc" => entry.rc = json::get_bool(json, key),
-            "beta" => entry.beta = json::get_bool(json, key),
-            "rsr" => entry.rsr = json::get_bool(json, key),
-            "internal" => entry.internal = json::get_bool(json, key),
-            "hideFromLatestVersions" => entry.hideFromLatestVersions = json::get_bool(json, key),
+            "rc" => entry.rc = json::get_bool(json, field),
+            "beta" => entry.beta = json::get_bool(json, field),
+            "rsr" => entry.rsr = json::get_bool(json, field),
+            "internal" => entry.internal = json::get_bool(json, field),
             "preinstalled" => {
-                if !json_keys.contains(&&key.to_string()) {
+                if !json_field_list.contains(&&field.to_string()) {
                     continue;
                     // If preinstalled does not exist in JSON, exit and leave the default value
                 }
-                let preinstalled = &json[key];
+                let preinstalled = &json[field];
                 // Preinstalled can be a bool or array
                 if preinstalled.is_boolean() {
                     let preinstalled_bool = preinstalled.as_bool().unwrap();
@@ -136,111 +138,131 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     }
                 } else if preinstalled.is_array() {
                     // If preinstalled is an array, use that value
-                    entry.preinstalled = json::get_string_array(json, key);
+                    entry.preinstalled = json::get_string_array(json, field);
                 }
             }
-            "notes" => entry.notes = json::get_string(json, key),
-            "releaseNotes" => entry.releaseNotes = json::get_string(json, key),
-            "securityNotes" => entry.securityNotes = json::get_string(json, key),
+            "notes" => entry.notes = json::get_string(json, field),
+            "releaseNotes" => entry.releaseNotes = json::get_string(json, field),
+            "securityNotes" => entry.securityNotes = json::get_string(json, field),
             "ipd" => {
-                // Clones the ipd_key object in the JSON to a BTreeMap object
-                let ipd_key_array = json::get_object_keys(&json[key]);
+                // Clones the ipd_field object in the JSON to a BTreeMap object
+                let ipd_field_list = json::get_object_field_list(&json[field]);
                 let mut ipd_map: BTreeMap<String, String> = BTreeMap::new();
-                for ipd_key in ipd_key_array {
-                    ipd_map.insert(ipd_key.clone(), json::get_string(&json[key], ipd_key));
+                for ipd_field in ipd_field_list {
+                    ipd_map.insert(ipd_field.clone(), json::get_string(&json[field], ipd_field));
                 }
                 entry.ipd = ipd_map;
             }
-            "appledbWebImage" => {
-                if !json_keys.contains(&&key.to_string()) {
-                    continue;
-                }
-                let align = json::get_string(&json[key], "align");
+            "appledb" => {
+                let mut appledb_object: OsEntryAppleDB = Default::default();
+                let appledb_field_list = OsEntryAppleDB::FIELD_NAMES_AS_ARRAY;
 
-                fn get_align(align: String, entry: &OsEntry) -> OsEntryAppleDBWebImageAlign {
-                    // Value should only ever be left or right, so enum is used
-                    if align == "left" {
-                        return OsEntryAppleDBWebImageAlign::left;
+                for appledb_field in appledb_field_list {
+                    match appledb_field {
+                        "webImage" => {
+                            if !json_field_list.contains(&&"appledbWebImage".to_string()) {
+                                continue;
+                            }
+
+                            let align = json::get_string(&json["appledbWebImage"], "align");
+
+                            fn get_align(
+                                align: String,
+                                entry: &OsEntry,
+                            ) -> OsEntryAppleDBWebImageAlign {
+                                // Value should only ever be left or right, so enum is used
+                                if align == "left" {
+                                    return OsEntryAppleDBWebImageAlign::left;
+                                }
+                                if align == "right" {
+                                    return OsEntryAppleDBWebImageAlign::right;
+                                }
+                                // Default to aligning the image as left, issue warning if JSON is not "left" or "right"
+                                println!(
+                                        "WARNING: {} {} ({}) has unknown appledbWebImage alignment: '{}'. Defaulting to 'left'.",
+                                        entry.osStr, entry.version, entry.build, align
+                                    );
+                                OsEntryAppleDBWebImageAlign::left
+                            }
+
+                            appledb_object.webImage = OsEntryAppleDBWebImage {
+                                id: json::get_string(&json[field], "id"),
+                                align: get_align(align, &entry),
+                            };
+                        }
+                        "webUrl" => {
+                            let paths = [entry.key.replace(';', "/"), ".html".to_string()]
+                                .concat()
+                                .replace(' ', "-");
+                            let url = Url::parse("https://appledb.dev/firmware/")
+                                .expect("Failed to parse URL");
+                            let url = url.join(&paths).expect("Failed to join URL");
+                            appledb_object.webUrl = url.as_str().to_string();
+                        }
+                        "apiUrl" => {
+                            let paths = [entry.key.clone().replace(';', "/"), ".json".to_string()]
+                                .concat()
+                                .replace(' ', "-");
+                            let url = Url::parse("https://api.emiyl.com/firmware/")
+                                .expect("Failed to parse URL");
+                            let url = url.join(&paths).expect("Failed to join URL");
+                            appledb_object.apiUrl = url.as_str().to_string();
+                        }
+                        "hideFromLatestVersions" => {
+                            appledb_object.hideFromLatestVersions =
+                                json::get_bool(json, "hideFromLatestVersions")
+                        }
+                        _ => println!("WARNING: Unknown AppleDB field: {}", appledb_field),
                     }
-                    if align == "right" {
-                        return OsEntryAppleDBWebImageAlign::right;
-                    }
-                    // Default to aligning the image as left, issue warning if JSON is not "left" or "right"
-                    println!(
-                            "WARNING: {} {} ({}) has unknown appledbWebImage alignment: '{}'. Defaulting to 'left'.",
-                            entry.osStr, entry.version, entry.build, align
-                        );
-                    OsEntryAppleDBWebImageAlign::left
                 }
 
-                let web_image = OsEntryAppleDBWebImage {
-                    id: json::get_string(&json[key], "id"),
-                    align: get_align(align, &entry),
-                };
-                entry.appledbWebImage = web_image;
+                entry.appledb = appledb_object;
             }
-            "appledbWebUrl" => {
-                // Create the URL
-                let key = &entry.key;
-                let paths = [key.replace(';', "/"), ".html".to_string()]
-                    .concat()
-                    .replace(' ', "-");
-                let url = Url::parse("https://appledb.dev/firmware/").expect("Failed to parse URL");
-                let url = url.join(&paths).expect("Failed to join URL");
-                entry.appledbWebUrl = url.as_str().to_string();
-            }
-            "appledbApiUrl" => {
-                // Create the URL
-                let key = &entry.key;
-                let paths = [key.replace(';', "/"), ".json".to_string()]
-                    .concat()
-                    .replace(' ', "-");
-                let url = Url::parse("https://api.emiyl.com/os/").expect("Failed to parse URL");
-                let url = url.join(&paths).expect("Failed to join URL");
-                entry.appledbApiUrl = url.as_str().to_string()
-            }
-            "deviceMap" => entry.deviceMap = json::get_string_array(json, key),
-            "osMap" => entry.osMap = json::get_string_array(json, key),
+            "deviceMap" => entry.deviceMap = json::get_string_array(json, field),
+            "osMap" => entry.osMap = json::get_string_array(json, field),
             "sources" => {
-                if !json_keys.contains(&&key.to_string()) {
+                if !json_field_list.contains(&&field.to_string()) {
                     continue;
                 }
-                let source_array = json[key].as_array().unwrap();
+                let source_array = json[field].as_array().unwrap();
                 let mut source_vec: Vec<OsEntrySource> = Vec::new();
                 for source in source_array {
                     // Create new OsEntrySource structs from JSON
                     let mut new_source: OsEntrySource = Default::default();
-                    let source_key_array = json::get_object_keys(source);
-                    for source_key in source_key_array {
-                        match source_key.as_str() {
-                            "type" => new_source.r#type = json::get_string(source, source_key),
+                    let source_field_list = json::get_object_field_list(source);
+                    for source_field in source_field_list {
+                        match source_field.as_str() {
+                            "type" => new_source.r#type = json::get_string(source, source_field),
                             "prerequisiteBuild" => {
-                                if source[source_key].is_array() {
+                                if source[source_field].is_array() {
                                     new_source.prerequisiteBuild =
-                                        json::get_string_array(source, source_key)
-                                } else if source[source_key].is_string() {
+                                        json::get_string_array(source, source_field)
+                                } else if source[source_field].is_string() {
                                     new_source.prerequisiteBuild =
-                                        vec![json::get_string(source, source_key)]
+                                        vec![json::get_string(source, source_field)]
                                 }
                             }
                             "deviceMap" => {
-                                new_source.deviceMap = json::get_string_array(source, source_key)
+                                new_source.deviceMap = json::get_string_array(source, source_field)
                             }
                             "osMap" => {
-                                new_source.osMap = json::get_string_array(source, source_key)
+                                new_source.osMap = json::get_string_array(source, source_field)
                             }
                             "windowsUpdateDetails" => {
                                 new_source.windowsUpdateDetails =
                                     OsEntrySourceWindowsUpdateDetails {
-                                        updateId: json::get_string(&source[source_key], "updateId"),
+                                        updateId: json::get_string(
+                                            &source[source_field],
+                                            "updateId",
+                                        ),
                                         revisionId: json::get_string(
-                                            &source[source_key],
+                                            &source[source_field],
                                             "revisionId",
                                         ),
                                     }
                             }
                             "links" => {
-                                let link_array = source[source_key].as_array().unwrap();
+                                let link_array = source[source_field].as_array().unwrap();
                                 let mut link_vec: Vec<OsEntrySourceLink> = Vec::new();
                                 for link in link_array {
                                     let new_link = OsEntrySourceLink {
@@ -252,21 +274,21 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                                 new_source.links = link_vec;
                             }
                             "hashes" => {
-                                let hash_object = &source[source_key];
-                                let hash_key_array = json::get_object_keys(hash_object);
+                                let hash_object = &source[source_field];
+                                let hash_field_list = json::get_object_field_list(hash_object);
                                 let mut hash_map: BTreeMap<String, String> = BTreeMap::new();
-                                for hash_key in hash_key_array {
+                                for hash_field in hash_field_list {
                                     hash_map.insert(
-                                        hash_key.clone(),
-                                        json::get_string(hash_object, hash_key),
+                                        hash_field.clone(),
+                                        json::get_string(hash_object, hash_field),
                                     );
                                 }
                                 new_source.hashes = hash_map;
                             }
                             "skipUpdateLinks" => {
-                                new_source.skipUpdateLinks = json::get_bool(source, source_key)
+                                new_source.skipUpdateLinks = json::get_bool(source, source_field)
                             }
-                            "size" => new_source.size = json::get_u64(source, source_key),
+                            "size" => new_source.size = json::get_u64(source, source_field),
                             _ => {}
                         }
                     }
@@ -274,7 +296,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 }
                 entry.sources = source_vec;
             }
-            _ => println!("WARNING: Unknown key: {}", key),
+            _ => println!("WARNING: Unknown field: {}", field),
         }
     }
     entry
@@ -291,9 +313,9 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
         let mut duplicate_entries_vec: Vec<Value> = Vec::new();
         for entry in create_duplicate_entries_array {
             let mut duplicate_json = json_vec[0].clone();
-            let entry_keys = json::get_object_keys(entry);
-            for key in entry_keys {
-                duplicate_json[key] = entry[key].clone();
+            let entry_field_list = json::get_object_field_list(entry);
+            for field in entry_field_list {
+                duplicate_json[field] = entry[field].clone();
             }
             duplicate_entries_vec.push(duplicate_json);
         }
@@ -313,17 +335,17 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + " SDK");
                 sdk_mut["build"] = Value::String(json::get_string(sdk, "build"));
 
-                let sdk_keys = json::get_object_keys(sdk);
-                let key_str = if sdk_keys.contains(&&"key".to_string()) {
+                let sdk_field_list = json::get_object_field_list(sdk);
+                let key = if sdk_field_list.contains(&&"key".to_string()) {
                     json::get_string(sdk, "key")
-                } else if sdk_keys.contains(&&"uniqueBuild".to_string()) {
+                } else if sdk_field_list.contains(&&"uniqueBuild".to_string()) {
                     json::get_string(sdk, "uniqueBuild")
-                } else if sdk_keys.contains(&&"build".to_string()) {
+                } else if sdk_field_list.contains(&&"build".to_string()) {
                     json::get_string(sdk, "build")
                 } else {
                     json::get_string(sdk, "version")
                 };
-                sdk_mut["key"] = Value::String(key_str + "-SDK");
+                sdk_mut["key"] = Value::String(key + "-SDK");
 
                 sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
                 let mut device_map_string = json::get_string(sdk, "osStr") + " SDK";
