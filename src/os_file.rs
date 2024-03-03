@@ -83,9 +83,11 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 if json_keys.contains(&&key.to_string()) {
                     // If key is defined in JSON, use JSON value
                     let mut entry_key = json::get_string(json, key);
-                    if !entry_key.starts_with(&entry.osStr) && !key.ends_with('!') {
+                    if !entry_key.starts_with(&entry.osStr) && !entry_key.ends_with('!') {
                         // If key doesn't start with osStr, and doesn't end with "!", then add osStr to the start
                         entry_key = [entry.osStr.clone(), ';'.to_string(), entry_key].concat()
+                    } else if entry_key.ends_with('!') {
+                        entry_key.pop();
                     }
                     entry.key = entry_key;
                 } else {
