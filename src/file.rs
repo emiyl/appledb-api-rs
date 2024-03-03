@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{Result, Write};
+use std::io::Write;
 use std::path::Path;
 
 pub fn open_file_to_string(file_path: &str) -> String {
@@ -16,12 +16,4 @@ pub fn write_string_to_file(file_path: &str, contents: &String) -> std::io::Resu
 
 pub fn path_exists(path: &String) -> bool {
     Path::new(&path).exists()
-}
-
-pub fn create_blank_file_and_overwrite(file_path: &String) -> Result<()> {
-    if path_exists(file_path) {
-        fs::remove_file(file_path)?;
-    }
-    fs::File::create(file_path)?;
-    Ok(())
 }

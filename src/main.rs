@@ -1,7 +1,7 @@
 mod file;
 mod json;
 mod os_file;
-use std::{fs, io::Write, os::unix::fs::FileExt};
+use std::{fs, fs::File, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
 
 fn main() {
@@ -10,28 +10,20 @@ fn main() {
 
     fs::create_dir_all("./out/firmware").expect("Failed to create directory ./out/firmware");
 
-    let main_json_path = "./out/firmware/main.json".to_string();
-    let index_json_path = "./out/firmware/index.json".to_string();
-    file::create_blank_file_and_overwrite(&main_json_path)
-        .expect("Failed to create ./out/firmware/main.json");
-    file::write_string_to_file(&main_json_path, &"[".to_string())
-        .expect("Failed to write to ./out/firmware/main.json");
-    file::create_blank_file_and_overwrite(&index_json_path)
-        .expect("Failed to create ./out/firmware/index.json");
-    file::write_string_to_file(&index_json_path, &"[".to_string())
-        .expect("Failed to write to ./out/firmware/main.json");
+    let main_index_json_path_array = ["./out/firmware/main.json", "./out/firmware/index.json"];
+    let mut main_index_json_file_array: Vec<File> = Vec::new();
 
-    let mut main_json_file = fs::OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open("./out/firmware/main.json")
-        .unwrap();
-    let mut index_json_file = fs::OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open("./out/firmware/index.json")
-        .unwrap();
-
+    for path in main_index_json_path_array {
+        file::write_string_to_file(path, &"[".to_string())
+            .expect("Failed to write to index/main json file");
+        main_index_json_file_array.push(
+            fs::OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(path)
+                .unwrap(),
+        )
+    }
     let mut os_str_vec: Vec<String> = Vec::new();
 
     for entry in WalkDir::new("./appledb/osFiles")
@@ -56,107 +48,80 @@ fn main() {
             file_count += 1;
 
             let os_str = &entry.osStr;
-            let os_str_main_json_file_path =
-                ["./out/firmware/", os_str.as_str(), "/main.json"].concat();
-            let os_str_index_json_file_path =
-                ["./out/firmware/", os_str.as_str(), "/index.json"].concat();
+            let os_str_main_index_json_file_path = [
+                ["./out/firmware/", os_str, "/main.json"].concat(),
+                ["./out/firmware/", os_str, "/index.json"].concat(),
+            ];
             if !os_str_vec.contains(os_str) {
                 os_str_vec.push(os_str.clone());
-                if file::path_exists(&os_str_main_json_file_path) {
-                    fs::remove_file(&os_str_main_json_file_path)
-                        .expect("Failed to delete osStr main.json file")
-                }
-                if file::path_exists(&os_str_index_json_file_path) {
-                    fs::remove_file(&os_str_index_json_file_path)
-                        .expect("Failed to delete osStr main.json file")
+                for path in os_str_main_index_json_file_path.iter() {
+                    if file::path_exists(path) {
+                        fs::remove_file(path).expect("Failed to delete osStr index/main json file")
+                    }
                 }
             }
 
-            if !file::path_exists(&os_str_main_json_file_path) {
-                file::write_string_to_file(&os_str_main_json_file_path, &"[".to_string())
-                    .expect("Failed to write to osStr main.json file");
-            }
-            if !file::path_exists(&os_str_index_json_file_path) {
-                file::write_string_to_file(&os_str_index_json_file_path, &"[".to_string())
-                    .expect("Failed to write to osStr index.json file");
+            for path in os_str_main_index_json_file_path.iter() {
+                if !file::path_exists(path) {
+                    file::write_string_to_file(path, &"[".to_string())
+                        .expect("Failed to write to osStr index/main json file");
+                }
             }
 
-            let mut os_str_main_json_file = fs::OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(os_str_main_json_file_path)
-                .unwrap();
+            let mut os_str_main_index_json_file_vec: Vec<File> = Vec::new();
+            for path in os_str_main_index_json_file_path.iter() {
+                os_str_main_index_json_file_vec.push(
+                    fs::OpenOptions::new()
+                        .append(true)
+                        .create(true)
+                        .open(path)
+                        .unwrap(),
+                );
+            }
 
-            let mut os_str_index_json_file = fs::OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(os_str_index_json_file_path)
-                .unwrap();
+            let main_index_json_file_buf = vec![
+                [out_json, ",".to_string()].concat(),
+                [
+                    "\"".to_string(),
+                    entry.clone().key.replace(';', "/"),
+                    "\",".to_string(),
+                ]
+                .concat(),
+            ];
 
-            let main_json_file_contents = out_json + ",";
-            let main_json_file_buf = main_json_file_contents.as_bytes();
-
-            let mut index_json_file_contents = entry.clone().key.replace(';', "/");
-            index_json_file_contents =
-                ["\"", index_json_file_contents.as_str(), "\"", ","].concat();
-            let index_json_file_buf = index_json_file_contents.as_bytes();
-
-            main_json_file
-                .write_all(main_json_file_buf)
-                .expect("Failed to write to ./out/firmware/main.json");
-            os_str_main_json_file
-                .write_all(main_json_file_buf)
-                .expect("Failed to write to osStr main.json file");
-            index_json_file
-                .write_all(index_json_file_buf)
-                .expect("Failed to write to ./out/firmware/index.json");
-            os_str_index_json_file
-                .write_all(index_json_file_buf)
-                .expect("Failed to write to ./out/firmware/index.json");
+            for (i, mut file) in main_index_json_file_array.iter().enumerate() {
+                file.write_all(main_index_json_file_buf[i].as_bytes())
+                    .expect("Failed to write to main/index json file");
+            }
         }
     }
 
     for os_str in os_str_vec {
-        let os_str_main_json_file_path =
-            ["./out/firmware/", os_str.as_str(), "/main.json"].concat();
-        let os_str_index_json_file_path =
-            ["./out/firmware/", os_str.as_str(), "/index.json"].concat();
+        let os_str_main_index_json_file_path_array = [
+            ["./out/firmware/", os_str.as_str(), "/main.json"].concat(),
+            ["./out/firmware/", os_str.as_str(), "/index.json"].concat(),
+        ];
 
-        let os_str_main_json_file = fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(os_str_main_json_file_path)
-            .unwrap();
-        let os_str_index_json_file = fs::OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(os_str_index_json_file_path)
-            .unwrap();
-
-        let os_str_main_json_len = os_str_main_json_file.metadata().unwrap().len();
-        let os_str_index_json_len = os_str_index_json_file.metadata().unwrap().len();
-
-        os_str_main_json_file
-            .write_at("]\n".as_bytes(), os_str_main_json_len - 1)
-            .expect("Failed to write to osStr main.json");
-        os_str_index_json_file
-            .write_at("]\n".as_bytes(), os_str_index_json_len - 1)
-            .expect("Failed to write to osStr index.json");
+        for path in os_str_main_index_json_file_path_array {
+            let file = fs::OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(path)
+                .unwrap();
+            let len = file.metadata().unwrap().len();
+            file.write_at("]\n".as_bytes(), len - 1)
+                .expect("Failed to write to osStr main.json");
+        }
 
         file_count += 1;
     }
 
-    let main_json_len = main_json_file.metadata().unwrap().len();
-    let index_json_len = index_json_file.metadata().unwrap().len();
-
-    main_json_file
-        .write_at("]\n".as_bytes(), main_json_len - 1)
-        .expect("Failed to write to ./out/firmware/main.json");
-    index_json_file
-        .write_at("]\n".as_bytes(), index_json_len - 1)
-        .expect("Failed to write to ./out/firmware/index.json");
-
-    file_count += 2;
+    for file in main_index_json_file_array {
+        let len = file.metadata().unwrap().len();
+        file.write_at("]\n".as_bytes(), len - 1)
+            .expect("Failed to write to index/main json file");
+        file_count += 1;
+    }
 
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
