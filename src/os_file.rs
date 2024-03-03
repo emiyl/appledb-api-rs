@@ -80,14 +80,14 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
             }
             "build" => entry.build = json::get_string(json, key),
             "key" => {
-                let mut key = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If key is defined in JSON, use JSON value
-                    if !key.starts_with(&entry.osStr) && !key.ends_with('!') {
+                    let mut entry_key = json::get_string(json, key);
+                    if !entry_key.starts_with(&entry.osStr) && !key.ends_with('!') {
                         // If key doesn't start with osStr, and doesn't end with "!", then add osStr to the start
-                        key = [entry.osStr.clone(), ';'.to_string(), key].concat()
+                        entry_key = [entry.osStr.clone(), ';'.to_string(), entry_key].concat()
                     }
-                    entry.key = key;
+                    entry.key = entry_key;
                 } else {
                     // Else, generate from osStr and uniqueBuild/build/version
                     let key_second_part = if json_keys.contains(&&"uniqueBuild".to_string()) {
@@ -97,7 +97,7 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     } else {
                         json::get_string(json, "version")
                     };
-                    entry.key = [&entry.osStr, ";", &key_second_part, "-SDK"].concat();
+                    entry.key = [&entry.osStr, ";", &key_second_part].concat();
                 }
             }
             "embeddedOSBuild" => entry.embeddedOSBuild = json::get_string(json, key),
@@ -308,23 +308,30 @@ pub fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
                 }
 
                 let mut sdk_mut = sdk.clone();
-                sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + "-SDK");
+                sdk_mut["version"] = Value::String(json::get_string(sdk, "version") + " SDK");
                 sdk_mut["build"] = Value::String(json::get_string(sdk, "build"));
 
-                let mut key_second_part = json::get_string(sdk, "build");
-                if !json::get_object_keys(sdk).contains(&&"build".to_string()) {
-                    key_second_part = json::get_string(sdk, "version")
-                }
-                sdk_mut["key"] =
-                    Value::String(json::get_string(sdk, "osStr") + ";" + &key_second_part + "-SDK");
+                let sdk_keys = json::get_object_keys(sdk);
+                let key_str = if sdk_keys.contains(&&"key".to_string()) {
+                    json::get_string(sdk, "key")
+                } else if sdk_keys.contains(&&"uniqueBuild".to_string()) {
+                    json::get_string(sdk, "uniqueBuild")
+                } else if sdk_keys.contains(&&"build".to_string()) {
+                    json::get_string(sdk, "build")
+                } else {
+                    json::get_string(sdk, "version")
+                };
+                sdk_mut["key"] = Value::String(key_str + "-SDK");
+
                 sdk_mut["released"] = Value::String(json::get_string(sdk, "released"));
-                let mut device_map_string = json::get_string(sdk, "osStr") + "-SDK";
+                let mut device_map_string = json::get_string(sdk, "osStr") + " SDK";
                 if device_map_string.contains("OS X") {
-                    device_map_string = "macOS-SDK".to_string()
+                    device_map_string = "macOS SDK".to_string()
                 }
+
                 sdk_mut["deviceMap"] = Value::Array(vec![Value::String(device_map_string)]);
                 sdk_mut["sdk"] = Value::Bool(true);
-                sdk_mut["beta"] = Value::Bool(json::get_bool(sdk, "beta"));
+
                 sdk_entries_vec.push(sdk_mut);
             }
             json_vec.append(&mut sdk_entries_vec);
