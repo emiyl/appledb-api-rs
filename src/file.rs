@@ -14,8 +14,12 @@ pub fn write_string_to_file(file_path: &str, contents: &String) -> std::io::Resu
     Ok(())
 }
 
-pub fn create_blank_file_and_overwrite(file_path: &str) -> Result<()> {
-    if Path::new(file_path).exists() {
+pub fn path_exists(path: &String) -> bool {
+    Path::new(&path).exists()
+}
+
+pub fn create_blank_file_and_overwrite(file_path: &String) -> Result<()> {
+    if path_exists(file_path) {
         fs::remove_file(file_path)?;
     }
     fs::File::create(file_path)?;

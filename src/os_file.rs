@@ -11,7 +11,7 @@ structstruck::strike! {
     #[strikethrough[derive(Default, Serialize, Clone)]]
     #[strikethrough[allow(non_snake_case)]]
     pub struct OsEntry {
-        osStr: String,
+        pub osStr: String,
         version: String,
         safariVersion: Vec<String>,
         build: String,
