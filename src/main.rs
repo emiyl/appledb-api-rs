@@ -1,11 +1,7 @@
 mod file;
 mod json;
 mod os_file;
-use std::{
-    fs,
-    io::{Read, Seek, Write},
-    os::unix::fs::FileExt,
-};
+use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
 
 fn main() {
@@ -150,18 +146,14 @@ fn main() {
         file_count += 1;
     }
 
-    let main_json_position = main_json_file
-        .stream_position()
-        .expect("Failed to get main.json stream_position");
-    let index_json_position = index_json_file
-        .stream_position()
-        .expect("Failed to get index.json stream_position");
+    let main_json_len = main_json_file.metadata().unwrap().len();
+    let index_json_len = index_json_file.metadata().unwrap().len();
 
     main_json_file
-        .write_at("]\n".as_bytes(), main_json_position - 1)
+        .write_at("]\n".as_bytes(), main_json_len - 1)
         .expect("Failed to write to ./out/firmware/main.json");
     index_json_file
-        .write_at("]\n".as_bytes(), index_json_position - 1)
+        .write_at("]\n".as_bytes(), index_json_len - 1)
         .expect("Failed to write to ./out/firmware/index.json");
 
     file_count += 2;
