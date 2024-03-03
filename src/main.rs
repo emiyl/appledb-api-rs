@@ -4,10 +4,8 @@ mod os_file;
 use std::{fs, fs::File, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
 
-fn main() {
-    let now = std::time::Instant::now();
-    let mut file_count = 0;
-
+fn create_firmware() -> u32 {
+    let mut file_count: u32 = 0;
     fs::create_dir_all("./out/firmware").expect("Failed to create directory ./out/firmware");
 
     let main_index_json_path_array = ["./out/firmware/main.json", "./out/firmware/index.json"];
@@ -129,6 +127,13 @@ fn main() {
         file_count += 1;
     }
 
+    file_count
+}
+
+fn main() {
+    let now = std::time::Instant::now();
+    let mut file_count: u32 = 0;
+    file_count += create_firmware();
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
 }
