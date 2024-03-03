@@ -55,24 +55,14 @@ fn main() {
         for entry in entry_vec {
             let out_json = serde_json::to_string(&entry).expect("Failed to convert struct to JSON");
 
-            let output = [
-                "./out/os/",
-                &entry.key.replace(';', "/").replace(' ', "-"),
-                ".json",
-            ]
-            .concat();
+            let output = ["./out/os/", &entry.key.replace(';', "/"), ".json"].concat();
             file::write_string_to_file(&output, &out_json).expect("Failed to write JSON");
             file_count += 1;
 
             let os_str = &entry.osStr;
-            let os_str_main_json_file_path =
-                ["./out/os/", os_str.replace(' ', "-").as_str(), "/main.json"].concat();
-            let os_str_index_json_file_path = [
-                "./out/os/",
-                os_str.replace(' ', "-").as_str(),
-                "/index.json",
-            ]
-            .concat();
+            let os_str_main_json_file_path = ["./out/os/", os_str.as_str(), "/main.json"].concat();
+            let os_str_index_json_file_path =
+                ["./out/os/", os_str.as_str(), "/index.json"].concat();
             if !os_str_vec.contains(os_str) {
                 os_str_vec.push(os_str.clone());
                 if file::path_exists(&os_str_main_json_file_path) {
@@ -109,8 +99,7 @@ fn main() {
             let main_json_file_contents = out_json + ",";
             let main_json_file_buf = main_json_file_contents.as_bytes();
 
-            let mut index_json_file_contents =
-                entry.clone().key.replace(';', "/").replace(' ', "-");
+            let mut index_json_file_contents = entry.clone().key.replace(';', "/");
             index_json_file_contents =
                 ["\"", index_json_file_contents.as_str(), "\"", ","].concat();
             let index_json_file_buf = index_json_file_contents.as_bytes();
@@ -131,14 +120,8 @@ fn main() {
     }
 
     for os_str in os_str_vec {
-        let os_str_main_json_file_path =
-            ["./out/os/", os_str.replace(' ', "-").as_str(), "/main.json"].concat();
-        let os_str_index_json_file_path = [
-            "./out/os/",
-            os_str.replace(' ', "-").as_str(),
-            "/index.json",
-        ]
-        .concat();
+        let os_str_main_json_file_path = ["./out/os/", os_str.as_str(), "/main.json"].concat();
+        let os_str_index_json_file_path = ["./out/os/", os_str.as_str(), "/index.json"].concat();
 
         let os_str_main_json_file = fs::OpenOptions::new()
             .append(true)
