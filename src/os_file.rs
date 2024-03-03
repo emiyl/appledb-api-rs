@@ -6,76 +6,61 @@ use std::collections::BTreeMap;
 use struct_field_names_as_array::FieldNamesAsArray;
 use url::Url;
 
-#[derive(Default, Serialize, Clone)]
-#[allow(non_camel_case_types)]
-enum OsEntryAppleDBWebImageAlign {
-    #[default]
-    left,
-    right,
-}
-
-#[derive(Default, Serialize, Clone)]
-struct OsEntryAppleDBWebImage {
-    id: String,
-    align: OsEntryAppleDBWebImageAlign,
-}
-
-#[derive(Default, Serialize, Clone)]
-struct OsEntrySourceLink {
-    url: String,
-    active: bool,
-}
-
-#[derive(Default, Serialize, Clone)]
-#[allow(non_snake_case)]
-struct OsEntrySourceWindowsUpdateDetails {
-    updateId: String,
-    revisionId: String,
-}
-
-#[derive(Default, Serialize, Clone)]
-#[allow(non_snake_case)]
-struct OsEntrySource {
-    r#type: String,
-    prerequisiteBuild: Vec<String>,
-    deviceMap: Vec<String>,
-    osMap: Vec<String>,
-    windowsUpdateDetails: OsEntrySourceWindowsUpdateDetails,
-    links: Vec<OsEntrySourceLink>,
-    hashes: BTreeMap<String, String>,
-    skipUpdateLinks: bool,
-    size: u64,
-}
-
-#[derive(Default, Serialize, FieldNamesAsArray, Clone)]
-#[allow(non_snake_case)]
-pub struct OsEntry {
-    osStr: String,
-    version: String,
-    safariVersion: Vec<String>,
-    build: String,
-    uniqueBuild: String,
-    pub key: String,
-    embeddedOSBuild: String,
-    bridgeOSBuild: String,
-    buildTrain: String,
-    released: String,
-    rc: bool,
-    beta: bool,
-    rsr: bool,
-    internal: bool,
-    hideFromLatestVersions: bool,
-    preinstalled: Vec<String>,
-    notes: String,
-    releaseNotes: String,
-    securityNotes: String,
-    ipd: BTreeMap<String, String>,
-    appledbWebImage: OsEntryAppleDBWebImage,
-    appledbWebUrl: String,
-    pub appledbApiUrl: String,
-    deviceMap: Vec<String>,
-    osMap: Vec<String>,
-    sources: Vec<OsEntrySource>,
+structstruck::strike! {
+    #[derive(FieldNamesAsArray)]
+    #[strikethrough[derive(Default, Serialize, Clone)]]
+    #[strikethrough[allow(non_snake_case)]]
+    pub struct OsEntry {
+        osStr: String,
+        version: String,
+        safariVersion: Vec<String>,
+        build: String,
+        uniqueBuild: String,
+        pub key: String,
+        embeddedOSBuild: String,
+        bridgeOSBuild: String,
+        buildTrain: String,
+        released: String,
+        rc: bool,
+        beta: bool,
+        rsr: bool,
+        internal: bool,
+        hideFromLatestVersions: bool,
+        preinstalled: Vec<String>,
+        notes: String,
+        releaseNotes: String,
+        securityNotes: String,
+        ipd: BTreeMap<String, String>,
+        appledbWebImage: struct OsEntryAppleDBWebImage {
+            id: String,
+            align: #[allow(non_camel_case_types)] enum OsEntryAppleDBWebImageAlign {
+                #[default]
+                left,
+                right,
+            },
+        },
+        appledbWebUrl: String,
+        pub appledbApiUrl: String,
+        deviceMap: Vec<String>,
+        osMap: Vec<String>,
+        sources: Vec<struct OsEntrySource {
+            r#type: String,
+            prerequisiteBuild: Vec<String>,
+            deviceMap: Vec<String>,
+            osMap: Vec<String>,
+            windowsUpdateDetails: struct OsEntrySourceWindowsUpdateDetails {
+                updateId: String,
+                revisionId: String,
+            },
+            links: Vec<struct OsEntrySourceLink {
+                url: String,
+                active: bool,
+            }>,
+            hashes: BTreeMap<String, String>,
+            skipUpdateLinks: bool,
+            size: u64,
+        }>,
+    }
 }
 
 pub fn create_os_entry_from_json(json: &Value) -> OsEntry {

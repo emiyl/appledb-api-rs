@@ -9,6 +9,7 @@ dependencies = [
  "serde",
  "serde_json",
  "struct-field-names-as-array",
+ "structstruck",
  "url",
  "walkdir",
 ]
@@ -21,6 +22,12 @@ checksum = "e13624c2627564efccf4934284bdd98cbaa14e79b0b5a141218e507b3a823456"
 dependencies = [
  "percent-encoding",
 ]
+
+[[package]]
+name = "heck"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 
 [[package]]
 name = "idna"
@@ -129,6 +136,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "structstruck"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a052ec87a2d9bdd3a35f85ec6a07a5ac0816e4190b1cbede9d67cccb47ea66d"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "venial",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -184,6 +203,16 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+]
+
+[[package]]
+name = "venial"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61584a325b16f97b5b25fcc852eb9550843a251057a5e3e5992d2376f3df4bb2"
+dependencies = [
+ "proc-macro2",
+ "quote",
 ]
 
 [[package]]
