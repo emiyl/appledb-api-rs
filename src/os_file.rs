@@ -80,13 +80,19 @@ pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
             }
             "build" => entry.build = json::get_string(json, key),
             "key" => {
-                let key = json::get_string(json, key);
+                let mut key = json::get_string(json, key);
                 if json_keys.contains(&&key.to_string()) {
                     // If key is defined in JSON, use JSON value
+                    if !key.starts_with(&entry.osStr) && !key.ends_with('!') {
+                        // If key doesn't start with osStr, and doesn't end with "!", then add osStr to the start
+                        key = [entry.osStr.clone(), ';'.to_string(), key].concat()
+                    }
                     entry.key = key;
                 } else {
-                    // Else, generate from osStr and build/version
-                    let key_second_part = if json_keys.contains(&&"build".to_string()) {
+                    // Else, generate from osStr and uniqueBuild/build/version
+                    let key_second_part = if json_keys.contains(&&"uniqueBuild".to_string()) {
+                        json::get_string(json, "uniqueBuild")
+                    } else if json_keys.contains(&&"build".to_string()) {
                         json::get_string(json, "build")
                     } else {
                         json::get_string(json, "version")
