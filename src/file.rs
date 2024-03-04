@@ -20,6 +20,6 @@ pub fn path_exists(path: &String) -> bool {
     Path::new(&path).exists()
 }
 
-pub fn mkdir(path: String) -> Result<()> {
+pub fn mkdir(path: &String) -> Result<()> {
     fs::create_dir_all(path)
 }

@@ -372,7 +372,7 @@ fn get_os_entry_vec_from_path(file_path: &str) -> Vec<OsEntry> {
 
 pub fn create_firmware() -> u32 {
     let mut file_count: u32 = 0;
-    file::mkdir("./out/firmware".to_string()).expect("Failed to create directory ./out/firmware");
+    file::mkdir(&"./out/firmware".to_string()).expect("Failed to create directory ./out/firmware");
 
     let main_index_json_path_array = ["./out/firmware/main.json", "./out/firmware/index.json"];
     let mut main_index_json_file_vec: Vec<File> = Vec::new();
