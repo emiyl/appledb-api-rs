@@ -1,7 +1,8 @@
-use std::fs;
-use std::io::Result;
-use std::io::Write;
-use std::path::Path;
+use std::{
+    fs,
+    io::{Result, Write},
+    path::Path,
+};
 
 pub fn open_file_to_string(file_path: &str) -> String {
     fs::read_to_string(file_path).expect("Should have been able to read the file") as String

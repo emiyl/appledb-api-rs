@@ -67,7 +67,7 @@ structstruck::strike! {
     }
 }
 
-pub fn create_os_entry_from_json(json: &Value) -> OsEntry {
+fn create_os_entry_from_json(json: &Value) -> OsEntry {
     let mut entry: OsEntry = Default::default();
     let json_field_list = json::get_object_field_list(json);
 
@@ -477,8 +477,8 @@ pub fn create_firmware() -> u32 {
                 .open(path)
                 .unwrap();
             let len = file.metadata().unwrap().len();
-            let pos = if len > 1 { len - 1 } else { len };
-            file.write_at("]\n".as_bytes(), pos)
+            let offset = if len > 1 { len - 1 } else { len };
+            file.write_at("]\n".as_bytes(), offset)
                 .expect("Failed to write to osStr main.json");
         }
 
@@ -487,8 +487,8 @@ pub fn create_firmware() -> u32 {
 
     for file in main_index_json_file_vec {
         let len = file.metadata().unwrap().len();
-        let pos = if len > 1 { len - 1 } else { len };
-        file.write_at("]\n".as_bytes(), pos)
+        let offset = if len > 1 { len - 1 } else { len };
+        file.write_at("]\n".as_bytes(), offset)
             .expect("Failed to write to main/index json file");
         file_count += 1;
     }
