@@ -1,4 +1,5 @@
 mod device_file;
+mod device_group;
 mod file;
 mod json;
 mod os_file;
@@ -9,6 +10,7 @@ use walkdir::WalkDir;
 enum EntryType {
     OsEntry,
     DeviceEntry,
+    DeviceGroup,
 }
 
 struct OutputEntry {
@@ -26,6 +28,10 @@ fn main() {
     ) + create_entries(
         EntryType::DeviceEntry,
         "./appledb/deviceFiles/".to_string(),
+        "./out/device/key/".to_string(),
+    ) + create_entries(
+        EntryType::DeviceGroup,
+        "./appledb/deviceGroupFiles/".to_string(),
         "./out/device/".to_string(),
     );
     let elapsed = now.elapsed();
@@ -106,6 +112,14 @@ fn create_entries(entry_type: EntryType, input_dir: String, output_dir: String) 
                     key: device_entry.key.to_owned(),
                 }]
             }
+            EntryType::DeviceGroup => {
+                let device_group = device_group::create_device_group_from_json(&json_value);
+                vec![OutputEntry {
+                    json: serde_json::to_string(&device_group)
+                        .expect("Failed to convert struct to JSON"),
+                    key: device_group.key.to_owned(),
+                }]
+            }
         };
 
         for output_entry in output_entry_list {
@@ -116,7 +130,7 @@ fn create_entries(entry_type: EntryType, input_dir: String, output_dir: String) 
 
             let main_index_json_file_buf = vec![
                 [output_entry.json, ",".to_string()].concat(),
-                ["\"".to_string(), output_entry.key, "\"".to_string()].concat(),
+                ["\"".to_string(), output_entry.key, "\",".to_string()].concat(),
             ];
 
             for (i, mut file) in main_index_json_file_vec.iter().enumerate() {
