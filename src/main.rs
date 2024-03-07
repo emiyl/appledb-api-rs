@@ -43,6 +43,11 @@ struct OutputEntry {
     key: String,
 }
 
+struct OutputFormat {
+    output_vec: Vec<Value>,
+    file_count: u32,
+}
+
 fn main() {
     let now = std::time::Instant::now();
     let mut file_count: u32 = 0;
@@ -62,9 +67,9 @@ fn main() {
         EntryType::DeviceGroup,
         "./appledb/deviceGroupFiles/".to_string(),
         "./out/device/".to_string(),
-        device_entry.0,
+        device_entry.output_vec,
     );
-    file_count += os_entry.1 + device_entry.1 + device_group_entry.1;
+    file_count += os_entry.file_count + device_entry.file_count + device_group_entry.file_count;
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
 }
@@ -99,27 +104,25 @@ fn finalise_main_index_json_file(main_index_json_file_vec: &[fs::File; 2]) -> u3
 fn write_entry(
     entry_type: &EntryType,
     json_value: Value,
-    mut output_vec: Vec<Value>,
+    mut output: OutputFormat,
     output_dir: &String,
     main_index_json_file_vec: &[fs::File; 2],
-) -> (Vec<Value>, u32) {
-    let mut file_count: u32 = 0;
-
+) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os_file::process_entry(json_value, output_vec, output_dir),
-        EntryType::Device => device_file::process_entry(json_value, output_vec),
-        EntryType::DeviceGroup => device_group::process_entry(json_value, output_vec),
+        EntryType::Os => os_file::process_entry(json_value, output.output_vec, output_dir),
+        EntryType::Device => device_file::process_entry(json_value, output.output_vec),
+        EntryType::DeviceGroup => device_group::process_entry(json_value, output.output_vec),
     };
 
     let output_entry_list = output_entry_tuple.0;
-    output_vec = output_entry_tuple.1;
-    file_count += output_entry_tuple.2;
+    output.output_vec = output_entry_tuple.1;
+    output.file_count += output_entry_tuple.2;
 
     for output_entry in output_entry_list {
         let output_path = [output_dir.as_str(), &output_entry.key, ".json"].concat();
         file::write_string_to_file(&output_path, &output_entry.json)
             .expect("Failed to write device JSON");
-        file_count += 1;
+        output.file_count += 1;
 
         let main_index_json_file_buf = vec![
             [output_entry.json, ",".to_string()].concat(),
@@ -132,7 +135,7 @@ fn write_entry(
         }
     }
 
-    (output_vec, file_count)
+    output
 }
 
 fn create_entries(
@@ -140,45 +143,42 @@ fn create_entries(
     input_dir: String,
     output_dir: String,
     input_vec: Vec<Value>,
-) -> (Vec<Value>, u32) {
+) -> OutputFormat {
     file::mkdir(&output_dir).expect("Failed to create directory");
 
-    let mut file_count: u32 = 0;
+    let mut output = OutputFormat {
+        output_vec: Vec::new(),
+        file_count: 0,
+    };
     let main_index_json_file_array = create_main_index_json_file(&output_dir);
     let entry_list = filter_dir_recurse!(input_dir, "json");
-    let mut output_vec: Vec<Value> = Vec::new();
 
     for entry in entry_list {
         let path = entry.path().to_str().unwrap();
         let json_string = file::open_file_to_string(path);
         let json_value = json::parse_json(&json_string);
 
-        let tuple = write_entry(
+        output = write_entry(
             &entry_type,
             json_value,
-            output_vec,
+            output,
             &output_dir,
             &main_index_json_file_array,
         );
-
-        output_vec = tuple.0;
-        file_count += tuple.1;
     }
 
-    let finalise_tuple = match entry_type {
-        EntryType::Os => os_file::finalise_entry(&output_dir, &output_vec),
-        EntryType::Device => device_file::finalise_entry(&output_vec),
+    output = match entry_type {
+        EntryType::Os => os_file::finalise_entry(&output_dir, output),
+        EntryType::Device => output,
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir,
             &input_vec,
-            &output_vec,
+            output,
             &main_index_json_file_array,
         ),
     };
-    output_vec = finalise_tuple.0;
-    file_count += finalise_tuple.1;
 
-    file_count += finalise_main_index_json_file(&main_index_json_file_array);
+    output.file_count += finalise_main_index_json_file(&main_index_json_file_array);
 
-    (output_vec, file_count)
+    output
 }

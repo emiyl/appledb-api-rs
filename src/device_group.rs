@@ -1,4 +1,4 @@
-use crate::{json, write_entry, OutputEntry};
+use crate::{json, write_entry, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::Value;
 use std::fs;
@@ -78,10 +78,10 @@ pub fn process_entry(
 pub fn finalise_entry(
     output_dir: &String,
     all_devices_vec: &Vec<Value>,
-    devices_in_device_groups_vec: &Vec<Value>,
+    output: OutputFormat,
     main_index_json_file_array: &[fs::File; 2],
-) -> (Vec<Value>, u32) {
-    let mut file_count: u32 = 0;
+) -> OutputFormat {
+    let devices_in_device_groups_vec = output.output_vec;
     let mut devices_not_in_device_groups_vec: Vec<&Value> = Vec::new();
     for device_obj in all_devices_vec {
         let device_key = &device_obj["key"];
@@ -90,19 +90,19 @@ pub fn finalise_entry(
         }
     }
 
-    let mut output_vec = devices_in_device_groups_vec.to_owned();
+    let mut output = OutputFormat {
+        output_vec: devices_in_device_groups_vec.to_owned(),
+        file_count: 0,
+    };
     for device in devices_not_in_device_groups_vec {
-        let tuple = write_entry(
+        output = write_entry(
             &crate::EntryType::DeviceGroup,
             device.to_owned(),
-            output_vec,
+            output,
             output_dir,
             main_index_json_file_array,
         );
-
-        output_vec = tuple.0;
-        file_count += tuple.1;
     }
 
-    (output_vec, file_count)
+    output
 }

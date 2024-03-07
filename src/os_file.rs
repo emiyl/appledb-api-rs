@@ -1,4 +1,4 @@
-use crate::{file, json, OutputEntry};
+use crate::{file, json, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -407,8 +407,8 @@ fn write_os_str_main_index_json_files(
     file_count
 }
 
-pub fn finalise_entry(output_dir: &String, output_vec: &Vec<Value>) -> (Vec<Value>, u32) {
-    for output in output_vec {
+pub fn finalise_entry(output_dir: &String, output: OutputFormat) -> OutputFormat {
+    for output in &output.output_vec {
         let mut os_str = "";
         if output.is_string() {
             os_str = output.as_str().unwrap();
@@ -431,7 +431,7 @@ pub fn finalise_entry(output_dir: &String, output_vec: &Vec<Value>) -> (Vec<Valu
         }
     }
 
-    (output_vec.to_owned(), 0)
+    output
 }
 
 pub fn process_entry(

@@ -77,6 +77,10 @@ pub fn process_entry(
             Value::String(device_entry.r#type.to_owned()),
         ),
         (
+            "key".to_string(),
+            Value::String(device_entry.key.to_owned()),
+        ),
+        (
             "devices".to_string(),
             Value::Array(vec![Value::String(device_entry.key.to_owned())]),
         ),
@@ -93,8 +97,4 @@ pub fn process_entry(
         output_vec,
         0,
     )
-}
-
-pub fn finalise_entry(output_vec: &Vec<Value>) -> (Vec<Value>, u32) {
-    (output_vec.to_owned(), 0)
 }
