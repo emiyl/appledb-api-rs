@@ -1,6 +1,6 @@
-use crate::json;
+use crate::{json, OutputEntry};
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{Map, Value};
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
@@ -23,7 +23,7 @@ pub struct DeviceEntry {
     windowsStoreId: String,
 }
 
-pub fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
+fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
     let mut entry: DeviceEntry = Default::default();
     let json_field_list = json::get_object_field_list(json);
 
@@ -59,4 +59,42 @@ pub fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
     }
 
     entry
+}
+
+pub fn process_entry(
+    json_value: Value,
+    mut output_vec: Vec<Value>,
+) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+    let device_entry = create_device_entry_from_json(&json_value);
+    let mut map: Map<String, Value> = Map::new();
+    for tuple in [
+        (
+            "name".to_string(),
+            Value::String(device_entry.name.to_owned()),
+        ),
+        (
+            "type".to_string(),
+            Value::String(device_entry.r#type.to_owned()),
+        ),
+        (
+            "devices".to_string(),
+            Value::Array(vec![Value::String(device_entry.key.to_owned())]),
+        ),
+    ] {
+        map.insert(tuple.0, tuple.1);
+    }
+    output_vec.push(Value::Object(map));
+
+    (
+        vec![OutputEntry {
+            json: serde_json::to_string(&device_entry).expect("Failed to convert struct to JSON"),
+            key: device_entry.key.to_owned(),
+        }],
+        output_vec,
+        0,
+    )
+}
+
+pub fn finalise_entry(output_vec: &Vec<Value>) -> (Vec<Value>, u32) {
+    (output_vec.to_owned(), 0)
 }

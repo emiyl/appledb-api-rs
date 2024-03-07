@@ -1,4 +1,4 @@
-use crate::{file, json};
+use crate::{file, json, OutputEntry};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -301,7 +301,7 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
     entry
 }
 
-pub fn get_os_entry_vec_from_path(json_value: Value) -> Vec<OsEntry> {
+fn get_os_entry_vec_from_path(json_value: Value) -> Vec<OsEntry> {
     let mut json_vec = vec![json_value];
 
     // Get duplicate entries
@@ -368,16 +368,16 @@ pub fn get_os_entry_vec_from_path(json_value: Value) -> Vec<OsEntry> {
     entry_vec
 }
 
-pub fn write_os_str_main_index_json_files(
+fn write_os_str_main_index_json_files(
     output_dir: &String,
-    os_str: &String,
+    os_str: String,
     out_json: &String,
     key: &String,
     create_new_file: bool,
 ) -> u32 {
     let mut file_count: u32 = 0;
     let os_str_main_index_json_file_path =
-        ["/main.json", "/index.json"].map(|str| [output_dir, os_str, str].concat());
+        ["/main.json", "/index.json"].map(|str| [output_dir, &os_str, str].concat());
     for (i, file_path) in os_str_main_index_json_file_path.iter().enumerate() {
         let file_exists = file::path_exists(file_path);
 
@@ -407,10 +407,15 @@ pub fn write_os_str_main_index_json_files(
     file_count
 }
 
-pub fn finalise_os_str_main_index_json_files(output_dir: &String, os_str_vec: Vec<String>) {
-    for os_str in os_str_vec {
+pub fn finalise_entry(output_dir: &String, output_vec: &Vec<Value>) -> (Vec<Value>, u32) {
+    for output in output_vec {
+        let mut os_str = "";
+        if output.is_string() {
+            os_str = output.as_str().unwrap();
+        }
+
         let main_index_json_list =
-            ["/main.json", "/index.json"].map(|str| [output_dir, &os_str, str].concat());
+            ["/main.json", "/index.json"].map(|str| [output_dir, os_str, str].concat());
         for path in main_index_json_list {
             if file::open_file_to_string(path.as_str()).ends_with(',') {
                 let file = fs::OpenOptions::new()
@@ -425,4 +430,45 @@ pub fn finalise_os_str_main_index_json_files(output_dir: &String, os_str_vec: Ve
             };
         }
     }
+
+    (output_vec.to_owned(), 0)
+}
+
+pub fn process_entry(
+    json_value: Value,
+    mut output_vec: Vec<Value>,
+    output_dir: &String,
+) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+    let mut file_count: u32 = 0;
+    let os_entry_vec = get_os_entry_vec_from_path(json_value);
+
+    let mut output_entry_vec: Vec<OutputEntry> = Vec::new();
+    for os_entry in os_entry_vec {
+        let output_entry = OutputEntry {
+            json: serde_json::to_string(&os_entry).expect("Failed to convert struct to JSON"),
+            key: os_entry.key.replace(';', "/"),
+        };
+
+        // OsEntry needs the firmware/<os_str>/<"main"|"index">.json files
+        // Use os_str_vec to keep track of which os_str files have been created
+        // Since the script appends to files, we need to know which files have already been created or not
+        let os_str = os_entry.osStr;
+        let os_str_value = Value::String(os_str.to_owned());
+        let os_str_vec_contains = output_vec.contains(&os_str_value);
+        if !os_str_vec_contains {
+            output_vec.push(os_str_value)
+        };
+
+        file_count += write_os_str_main_index_json_files(
+            output_dir,
+            os_str,
+            &output_entry.json,
+            &output_entry.key,
+            !os_str_vec_contains,
+        );
+
+        output_entry_vec.push(output_entry);
+    }
+
+    (output_entry_vec, output_vec, file_count)
 }

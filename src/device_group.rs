@@ -1,24 +1,25 @@
-use crate::json;
+use crate::{json, write_entry, OutputEntry};
 use serde::Serialize;
 use serde_json::Value;
+use std::fs;
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
 #[allow(non_snake_case)]
-pub struct DeviceGroup {
+pub struct DeviceGroupEntry {
     name: String,
     pub key: String,
     r#type: String,
-    devices: Vec<String>,
+    pub devices: Vec<String>,
     hideChildren: bool,
-    subgroups: Vec<DeviceGroup>,
+    subgroups: Vec<DeviceGroupEntry>,
 }
 
-pub fn create_device_group_from_json(json: &Value) -> DeviceGroup {
-    let mut entry: DeviceGroup = Default::default();
+pub fn create_device_group_entry_from_json(json: &Value) -> DeviceGroupEntry {
+    let mut entry: DeviceGroupEntry = Default::default();
     let json_field_list = json::get_object_field_list(json);
 
-    for field in DeviceGroup::FIELD_NAMES_AS_ARRAY {
+    for field in DeviceGroupEntry::FIELD_NAMES_AS_ARRAY {
         match field {
             "name" => entry.name = json::get_string(json, field),
             "key" => {
@@ -32,14 +33,14 @@ pub fn create_device_group_from_json(json: &Value) -> DeviceGroup {
             "devices" => entry.devices = json::get_string_array(json, field),
             "hideChildren" => entry.hideChildren = json::get_bool(json, field),
             "subgroups" => {
-                let mut subgroup_vec: Vec<DeviceGroup> = Vec::new();
+                let mut subgroup_vec: Vec<DeviceGroupEntry> = Vec::new();
                 if !json[field].is_array() {
                     entry.subgroups = subgroup_vec;
                     continue;
                 }
                 let subgroup_json_vec = json[field].as_array().unwrap();
                 for subgroup_json in subgroup_json_vec {
-                    subgroup_vec.push(create_device_group_from_json(subgroup_json))
+                    subgroup_vec.push(create_device_group_entry_from_json(subgroup_json))
                 }
                 entry.subgroups = subgroup_vec
             }
@@ -48,4 +49,60 @@ pub fn create_device_group_from_json(json: &Value) -> DeviceGroup {
     }
 
     entry
+}
+
+pub fn process_entry(
+    json_value: Value,
+    mut output_vec: Vec<Value>,
+) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+    let device_group = create_device_group_entry_from_json(&json_value);
+
+    let device_group_devices = &device_group.devices;
+    for device in device_group_devices {
+        let value = Value::String(device.to_owned());
+        if !output_vec.contains(&value) {
+            output_vec.push(value);
+        }
+    }
+
+    (
+        vec![OutputEntry {
+            json: serde_json::to_string(&device_group).expect("Failed to convert struct to JSON"),
+            key: device_group.key.to_owned(),
+        }],
+        output_vec,
+        0,
+    )
+}
+
+pub fn finalise_entry(
+    output_dir: &String,
+    all_devices_vec: &Vec<Value>,
+    devices_in_device_groups_vec: &Vec<Value>,
+    main_index_json_file_array: &[fs::File; 2],
+) -> (Vec<Value>, u32) {
+    let mut file_count: u32 = 0;
+    let mut devices_not_in_device_groups_vec: Vec<&Value> = Vec::new();
+    for device_obj in all_devices_vec {
+        let device_key = &device_obj["key"];
+        if !devices_in_device_groups_vec.contains(device_key) {
+            devices_not_in_device_groups_vec.push(device_obj)
+        }
+    }
+
+    let mut output_vec = devices_in_device_groups_vec.to_owned();
+    for device in devices_not_in_device_groups_vec {
+        let tuple = write_entry(
+            &crate::EntryType::DeviceGroup,
+            device.to_owned(),
+            output_vec,
+            output_dir,
+            main_index_json_file_array,
+        );
+
+        output_vec = tuple.0;
+        file_count += tuple.1;
+    }
+
+    (output_vec, file_count)
 }
