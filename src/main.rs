@@ -3,9 +3,28 @@ mod device_group;
 mod file;
 mod json;
 mod os;
+mod jailbreak;
 use serde_json::{json, Value};
 use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
+
+#[derive(PartialEq)]
+enum EntryType {
+    Os,
+    Device,
+    DeviceGroup,
+    Jailbreak
+}
+
+struct OutputEntry {
+    json: String,
+    key: String,
+}
+
+struct OutputFormat {
+    value_vec: Vec<Value>,
+    file_count: u32,
+}
 
 macro_rules! filter_dir_recurse {
     ($dir:expr,$extension:expr) => {
@@ -28,23 +47,6 @@ macro_rules! filter_dir_recurse {
     };
 }
 
-#[derive(PartialEq)]
-enum EntryType {
-    Os,
-    Device,
-    DeviceGroup,
-}
-
-struct OutputEntry {
-    json: String,
-    key: String,
-}
-
-struct OutputFormat {
-    output_vec: Vec<Value>,
-    file_count: u32,
-}
-
 fn main() {
     let now = std::time::Instant::now();
     let mut file_count: u32 = 0;
@@ -64,9 +66,16 @@ fn main() {
         EntryType::DeviceGroup,
         "./appledb/deviceGroupFiles/".to_string(),
         "./out/device/".to_string(),
-        device_entry.output_vec,
+        device_entry.value_vec,
     );
-    file_count += os_entry.file_count + device_entry.file_count + device_group_entry.file_count;
+    let jailbreak_entry = create_entries(
+        EntryType::Jailbreak,
+        "./appledb/jailbreakFiles/".to_string(),
+        "./out/jailbreak/".to_string(),
+        Vec::new(),
+    );
+
+    file_count += os_entry.file_count + device_entry.file_count + device_group_entry.file_count + jailbreak_entry.file_count;
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
 }
@@ -106,14 +115,15 @@ fn write_entry(
     main_index_json_file_vec: &[fs::File; 2],
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os::process_entry(json_value, output.output_vec, output_dir),
-        EntryType::Device => device::process_entry(json_value, output.output_vec),
-        EntryType::DeviceGroup => device_group::process_entry(json_value, output.output_vec),
+        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir),
+        EntryType::Device => device::process_entry(json_value, output.value_vec),
+        EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
+        EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec)
     };
 
     let output_entry_list = output_entry_tuple.0;
-    output.output_vec = output_entry_tuple.1;
-    output.file_count += output_entry_tuple.2;
+    output.value_vec = output_entry_tuple.1.value_vec;
+    output.file_count += output_entry_tuple.1.file_count;
 
     for output_entry in output_entry_list {
         let output_path = [output_dir.as_str(), &output_entry.key, ".json"].concat();
@@ -144,7 +154,7 @@ fn create_entries(
     file::mkdir(&output_dir).expect("Failed to create directory");
 
     let mut output = OutputFormat {
-        output_vec: Vec::new(),
+        value_vec: Vec::new(),
         file_count: 0,
     };
     let main_index_json_file_array = create_main_index_json_file(&output_dir);
@@ -166,13 +176,13 @@ fn create_entries(
 
     output = match entry_type {
         EntryType::Os => os::finalise_entry(&output_dir, output),
-        EntryType::Device => output,
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir,
             &input_vec,
             output,
             &main_index_json_file_array,
         ),
+        _ => output
     };
 
     output.file_count += finalise_main_index_json_file(&main_index_json_file_array);

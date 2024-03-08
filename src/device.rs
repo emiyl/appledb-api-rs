@@ -1,4 +1,4 @@
-use crate::{json, OutputEntry};
+use crate::{json, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::{Map, Value};
 use struct_field_names_as_array::FieldNamesAsArray;
@@ -63,8 +63,8 @@ fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
 
 pub fn process_entry(
     json_value: Value,
-    mut output_vec: Vec<Value>,
-) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+    mut value_vec: Vec<Value>,
+) -> (Vec<OutputEntry>, OutputFormat) {
     let device_entry = create_device_entry_from_json(&json_value);
     let mut map: Map<String, Value> = Map::new();
     for tuple in [
@@ -87,14 +87,16 @@ pub fn process_entry(
     ] {
         map.insert(tuple.0, tuple.1);
     }
-    output_vec.push(Value::Object(map));
+    value_vec.push(Value::Object(map));
 
     (
         vec![OutputEntry {
             json: serde_json::to_string(&device_entry).expect("Failed to convert struct to JSON"),
             key: device_entry.key.to_owned(),
         }],
-        output_vec,
-        0,
+        OutputFormat {
+            value_vec,
+            file_count: 0
+        }
     )
 }

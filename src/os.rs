@@ -408,7 +408,7 @@ fn write_os_str_main_index_json_files(
 }
 
 pub fn finalise_entry(output_dir: &String, output: OutputFormat) -> OutputFormat {
-    for output in &output.output_vec {
+    for output in &output.value_vec {
         let mut os_str = "";
         if output.is_string() {
             os_str = output.as_str().unwrap();
@@ -436,9 +436,9 @@ pub fn finalise_entry(output_dir: &String, output: OutputFormat) -> OutputFormat
 
 pub fn process_entry(
     json_value: Value,
-    mut output_vec: Vec<Value>,
+    mut value_vec: Vec<Value>,
     output_dir: &String,
-) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+) -> (Vec<OutputEntry>, OutputFormat) {
     let mut file_count: u32 = 0;
     let os_entry_vec = get_os_entry_vec_from_path(json_value);
 
@@ -454,9 +454,9 @@ pub fn process_entry(
         // Since the script appends to files, we need to know which files have already been created or not
         let os_str = os_entry.osStr;
         let os_str_value = Value::String(os_str.to_owned());
-        let os_str_vec_contains = output_vec.contains(&os_str_value);
+        let os_str_vec_contains = value_vec.contains(&os_str_value);
         if !os_str_vec_contains {
-            output_vec.push(os_str_value)
+            value_vec.push(os_str_value)
         };
 
         file_count += write_os_str_main_index_json_files(
@@ -470,5 +470,5 @@ pub fn process_entry(
         output_entry_vec.push(output_entry);
     }
 
-    (output_entry_vec, output_vec, file_count)
+    (output_entry_vec, OutputFormat { value_vec, file_count })
 }

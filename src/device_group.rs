@@ -53,15 +53,15 @@ pub fn create_device_group_entry_from_json(json: &Value) -> DeviceGroupEntry {
 
 pub fn process_entry(
     json_value: Value,
-    mut output_vec: Vec<Value>,
-) -> (Vec<OutputEntry>, Vec<Value>, u32) {
+    mut value_vec: Vec<Value>,
+) -> (Vec<OutputEntry>, OutputFormat) {
     let device_group = create_device_group_entry_from_json(&json_value);
 
     let device_group_devices = &device_group.devices;
     for device in device_group_devices {
         let value = Value::String(device.to_owned());
-        if !output_vec.contains(&value) {
-            output_vec.push(value);
+        if !value_vec.contains(&value) {
+            value_vec.push(value);
         }
     }
 
@@ -70,8 +70,10 @@ pub fn process_entry(
             json: serde_json::to_string(&device_group).expect("Failed to convert struct to JSON"),
             key: device_group.key.to_owned(),
         }],
-        output_vec,
-        0,
+        OutputFormat {
+            value_vec,
+            file_count: 0,
+        }
     )
 }
 
@@ -81,7 +83,7 @@ pub fn finalise_entry(
     output: OutputFormat,
     main_index_json_file_array: &[fs::File; 2],
 ) -> OutputFormat {
-    let devices_in_device_groups_vec = output.output_vec;
+    let devices_in_device_groups_vec = output.value_vec;
     let mut devices_not_in_device_groups_vec: Vec<&Value> = Vec::new();
     for device_obj in all_devices_vec {
         let device_key = &device_obj["key"];
@@ -91,7 +93,7 @@ pub fn finalise_entry(
     }
 
     let mut output = OutputFormat {
-        output_vec: devices_in_device_groups_vec.to_owned(),
+        value_vec: devices_in_device_groups_vec.to_owned(),
         file_count: 0,
     };
     for device in devices_not_in_device_groups_vec {
