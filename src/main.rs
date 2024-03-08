@@ -1,18 +1,15 @@
-mod device_file;
+mod device;
 mod device_group;
 mod file;
 mod json;
-mod os_file;
+mod os;
 use serde_json::{json, Value};
 use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
 
 macro_rules! filter_dir_recurse {
-    // macth like arm for macro
     ($dir:expr,$extension:expr) => {
-        // macro expand to this code
         {
-            // $a and $b will be templated using the value/variable provided to macro
             WalkDir::new($dir)
                 .into_iter()
                 .filter_map(|e| e.ok())
@@ -109,8 +106,8 @@ fn write_entry(
     main_index_json_file_vec: &[fs::File; 2],
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os_file::process_entry(json_value, output.output_vec, output_dir),
-        EntryType::Device => device_file::process_entry(json_value, output.output_vec),
+        EntryType::Os => os::process_entry(json_value, output.output_vec, output_dir),
+        EntryType::Device => device::process_entry(json_value, output.output_vec),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.output_vec),
     };
 
@@ -168,7 +165,7 @@ fn create_entries(
     }
 
     output = match entry_type {
-        EntryType::Os => os_file::finalise_entry(&output_dir, output),
+        EntryType::Os => os::finalise_entry(&output_dir, output),
         EntryType::Device => output,
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir,
