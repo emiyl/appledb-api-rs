@@ -20,9 +20,9 @@ jobs:
           submodules: recursive
 
       - name: Setup Rust
-        uses: ATiltedTree/setup-rust@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          rust-version: stable
+          toolchain: stable
           components: clippy
 
       - name: Lint
@@ -49,9 +49,9 @@ jobs:
         run: node prepare_jailbreak_json.js
 
       - name: Setup Rust
-        uses: ATiltedTree/setup-rust@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          rust-version: stable
+          toolchain: stable
           components: clippy
 
       - name: Build
