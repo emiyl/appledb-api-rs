@@ -40,6 +40,14 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Prepare Jailbreak JSON
+        run: node prepare_jailbreak_json.js
+
       - name: Setup Rust
         uses: ATiltedTree/setup-rust@v1
         with:

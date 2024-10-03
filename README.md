@@ -31,7 +31,7 @@ OsEntry {
   },
   deviceMap: Array<String>,
   osMap: Array<String>,
-  sources: Vec< {
+  sources: Array< {
       type: String,
       prerequisiteBuild: Array<String>,
       deviceMap: Array<String>,
@@ -66,5 +66,44 @@ DeviceEntry {
     iBridge: String,
     group: Boolean,
     windowsStoreId: String,
+}
+
+JailbreakEntry {
+    name: String,
+    key: String,
+    alias: Array<String>,
+    priority: Value,
+    hideFromGuide: Boolean,
+    info: {
+        website: {
+            name: String,
+            url: String
+        },
+        wiki: {
+            name: String,
+            url: String
+        },
+        guide: Array<{
+            name: String,
+            url: String,
+            pkgman: String,
+            updateLink: Array<{
+                name: String,
+                url: String
+            }>
+        }>,
+        latestVer: String,
+        color: String,
+        icon: String,
+        notes: String,
+        jailbreaksmeapp: Boolean,
+        type: String,
+        firmwares: Array<String>,
+        soc: String
+    },
+    compatibility: Array<{
+        firmwares: Array<String>,
+        devices: Array<String>
+    }>
 }
 ```

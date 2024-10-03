@@ -29,8 +29,7 @@ structstruck::strike! {
         releaseNotes: String,
         securityNotes: String,
         ipd: BTreeMap<String, String>,
-        appledb: #[derive(FieldNamesAsArray)]
-        struct OsEntryAppleDB {
+        appledb: #[derive(FieldNamesAsArray)] struct OsEntryAppleDB {
             webImage: struct OsEntryAppleDBWebImage {
                 id: String,
                 align: #[allow(non_camel_case_types)]

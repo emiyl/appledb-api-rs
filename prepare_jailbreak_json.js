@@ -36,11 +36,6 @@ function writeJson(dirName, arr, property) {
   const output_path = "./tmp"
   mkdir(output_path);
   mkdir(path.join(output_path, dirName));
-  write(
-    path.join(output_path, dirName, "index.json"),
-    JSON.stringify(arr.map((x) => x[property])),
-  );
-  write(path.join(output_path, dirName, "main.json"), JSON.stringify(arr));
   arr.map(function (x) {
     write(
       path.join(output_path, dirName, x[property].replace("/", "%2F") + ".json"),

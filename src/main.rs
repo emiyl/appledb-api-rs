@@ -49,7 +49,6 @@ macro_rules! filter_dir_recurse {
 
 fn main() {
     let now = std::time::Instant::now();
-    let mut file_count: u32 = 0;
     let os_entry = create_entries(
         EntryType::Os,
         "./appledb/osFiles/".to_string(),
@@ -65,17 +64,22 @@ fn main() {
     let device_group_entry = create_entries(
         EntryType::DeviceGroup,
         "./appledb/deviceGroupFiles/".to_string(),
-        "./out/device/".to_string(),
+        "./out/device/group/".to_string(),
         device_entry.value_vec,
     );
     let jailbreak_entry = create_entries(
         EntryType::Jailbreak,
-        "./appledb/jailbreakFiles/".to_string(),
+        "./tmp/jailbreak/".to_string(),
         "./out/jailbreak/".to_string(),
         Vec::new(),
     );
 
-    file_count += os_entry.file_count + device_entry.file_count + device_group_entry.file_count + jailbreak_entry.file_count;
+    let file_count = 
+        os_entry.file_count +
+        device_entry.file_count +
+        device_group_entry.file_count +
+        jailbreak_entry.file_count;
+    
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
 }
