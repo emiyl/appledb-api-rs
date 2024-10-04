@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
@@ -59,6 +59,9 @@ jobs:
 
       - name: Deploy
         run: cargo run --release
+
+      - name: Split all >100MB files into parts
+        run: for i in $(find ./out -size +100M -not -path './git/*'); do { split -d -b 100M -a 1 $i $i } done
 
       - name: Remove all >100MB files
         run: find ./out -size +100M -not -path './.git/*' | xargs rm

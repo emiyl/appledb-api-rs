@@ -47,43 +47,6 @@ macro_rules! filter_dir_recurse {
     };
 }
 
-fn main() {
-    let now = std::time::Instant::now();
-    let os_entry = create_entries(
-        EntryType::Os,
-        "./appledb/osFiles/".to_string(),
-        "./out/firmware/".to_string(),
-        Vec::new(),
-    );
-    let device_entry = create_entries(
-        EntryType::Device,
-        "./appledb/deviceFiles/".to_string(),
-        "./out/device/key/".to_string(),
-        Vec::new(),
-    );
-    let device_group_entry = create_entries(
-        EntryType::DeviceGroup,
-        "./appledb/deviceGroupFiles/".to_string(),
-        "./out/device/group/".to_string(),
-        device_entry.value_vec,
-    );
-    let jailbreak_entry = create_entries(
-        EntryType::Jailbreak,
-        "./tmp/jailbreak/".to_string(),
-        "./out/jailbreak/".to_string(),
-        Vec::new(),
-    );
-
-    let file_count = 
-        os_entry.file_count +
-        device_entry.file_count +
-        device_group_entry.file_count +
-        jailbreak_entry.file_count;
-    
-    let elapsed = now.elapsed();
-    println!("Processed {} files in {:.2?}", file_count, elapsed);
-}
-
 fn create_main_index_json_file(output_dir: &str) -> [fs::File; 2] {
     let main_index_json_path_array =
         ["main.json", "index.json"].map(|str| [&output_dir, str].concat());
@@ -192,4 +155,41 @@ fn create_entries(
     output.file_count += finalise_main_index_json_file(&main_index_json_file_array);
 
     output
+}
+
+fn main() {
+    let now = std::time::Instant::now();
+    let os_entry = create_entries(
+        EntryType::Os,
+        "./appledb/osFiles/".to_string(),
+        "./out/firmware/".to_string(),
+        Vec::new(),
+    );
+    let device_entry = create_entries(
+        EntryType::Device,
+        "./appledb/deviceFiles/".to_string(),
+        "./out/device/key/".to_string(),
+        Vec::new(),
+    );
+    let device_group_entry = create_entries(
+        EntryType::DeviceGroup,
+        "./appledb/deviceGroupFiles/".to_string(),
+        "./out/device/group/".to_string(),
+        device_entry.value_vec,
+    );
+    let jailbreak_entry = create_entries(
+        EntryType::Jailbreak,
+        "./tmp/jailbreak/".to_string(),
+        "./out/jailbreak/".to_string(),
+        Vec::new(),
+    );
+
+    let file_count = 
+        os_entry.file_count +
+        device_entry.file_count +
+        device_group_entry.file_count +
+        jailbreak_entry.file_count;
+    
+    let elapsed = now.elapsed();
+    println!("Processed {} files in {:.2?}", file_count, elapsed);
 }
