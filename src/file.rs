@@ -5,6 +5,7 @@ use std::{
 };
 
 pub fn open_file_to_string(file_path: &str) -> String {
+    println!("{:?}", file_path);
     fs::read_to_string(file_path).expect("Should have been able to read the file") as String
 }
 
