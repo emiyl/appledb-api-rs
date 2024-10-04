@@ -164,7 +164,7 @@ fn create_entries(
 
 fn main() {
     let now = std::time::Instant::now();
-    /*let os_entry = create_entries(
+    let os_entry = create_entries(
         EntryType::Os,
         "./appledb/osFiles/",
         "./out/firmware/"
@@ -183,7 +183,7 @@ fn main() {
         EntryType::Jailbreak,
         "./tmp/jailbreak/",
         "./out/jailbreak/"
-    );*/
+    );
     let bypass_entry = create_entries(
         EntryType::Bypass, 
         "./appledb/bypassApps",
@@ -191,10 +191,10 @@ fn main() {
     );
 
     let file_count = 
-        /*os_entry.file_count +
+        os_entry.file_count +
         device_entry.file_count +
         device_group_entry.file_count +
-        jailbreak_entry.file_count +*/
+        jailbreak_entry.file_count +
         bypass_entry.file_count;
     
     let elapsed = now.elapsed();
