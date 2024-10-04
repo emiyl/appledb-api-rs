@@ -106,4 +106,21 @@ JailbreakEntry {
         devices: Array<String>
     }>
 }
+
+BypassEntry {
+    name: String,
+    bundleId: String,
+    uri: String,
+    icon: String,
+    notes: String,
+    bypasses: Array<{
+        name: String,
+        notes: String,
+        version: String,
+        guide: String,
+        repository: {
+            uri: String
+        },
+    }>
+}
 ```

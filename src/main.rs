@@ -4,6 +4,7 @@ mod file;
 mod json;
 mod os;
 mod jailbreak;
+mod bypass;
 use serde_json::{json, Value};
 use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
@@ -13,7 +14,8 @@ enum EntryType {
     Os,
     Device,
     DeviceGroup,
-    Jailbreak
+    Jailbreak,
+    Bypass
 }
 
 struct OutputEntry {
@@ -85,7 +87,8 @@ fn write_entry(
         EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir),
         EntryType::Device => device::process_entry(json_value, output.value_vec),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
-        EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec)
+        EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
+        EntryType::Bypass => bypass::process_entry(json_value, output.value_vec)
     };
 
     let output_entry_list = output_entry_tuple.0;
@@ -114,11 +117,13 @@ fn write_entry(
 
 fn create_entries(
     entry_type: EntryType,
-    input_dir: String,
-    output_dir: String,
-    input_vec: Vec<Value>,
+    input_dir: &str,
+    output_dir: &str
 ) -> OutputFormat {
-    file::mkdir(&output_dir).expect("Failed to create directory");
+    let output_dir_string = output_dir.to_string();
+    let input_vec = Vec::new();
+
+    file::mkdir(&output_dir_string).expect("Failed to create directory");
 
     let mut output = OutputFormat {
         value_vec: Vec::new(),
@@ -136,15 +141,15 @@ fn create_entries(
             &entry_type,
             json_value,
             output,
-            &output_dir,
+            &output_dir_string,
             &main_index_json_file_array,
         );
     }
 
     output = match entry_type {
-        EntryType::Os => os::finalise_entry(&output_dir, output),
+        EntryType::Os => os::finalise_entry(&output_dir_string, output),
         EntryType::DeviceGroup => device_group::finalise_entry(
-            &output_dir,
+            &output_dir_string,
             &input_vec,
             output,
             &main_index_json_file_array,
@@ -159,36 +164,38 @@ fn create_entries(
 
 fn main() {
     let now = std::time::Instant::now();
-    let os_entry = create_entries(
+    /*let os_entry = create_entries(
         EntryType::Os,
-        "./appledb/osFiles/".to_string(),
-        "./out/firmware/".to_string(),
-        Vec::new(),
+        "./appledb/osFiles/",
+        "./out/firmware/"
     );
     let device_entry = create_entries(
         EntryType::Device,
-        "./appledb/deviceFiles/".to_string(),
-        "./out/device/key/".to_string(),
-        Vec::new(),
+        "./appledb/deviceFiles/",
+        "./out/device/key/"
     );
     let device_group_entry = create_entries(
         EntryType::DeviceGroup,
-        "./appledb/deviceGroupFiles/".to_string(),
-        "./out/device/group/".to_string(),
-        device_entry.value_vec,
+        "./appledb/deviceGroupFiles/",
+        "./out/device/group/"
     );
     let jailbreak_entry = create_entries(
         EntryType::Jailbreak,
-        "./tmp/jailbreak/".to_string(),
-        "./out/jailbreak/".to_string(),
-        Vec::new(),
+        "./tmp/jailbreak/",
+        "./out/jailbreak/"
+    );*/
+    let bypass_entry = create_entries(
+        EntryType::Bypass, 
+        "./appledb/bypassApps",
+        "./out/bypass/"
     );
 
     let file_count = 
-        os_entry.file_count +
+        /*os_entry.file_count +
         device_entry.file_count +
         device_group_entry.file_count +
-        jailbreak_entry.file_count;
+        jailbreak_entry.file_count +*/
+        bypass_entry.file_count;
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
