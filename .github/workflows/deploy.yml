@@ -60,6 +60,9 @@ jobs:
       - name: Deploy
         run: cargo run --release
 
+      - name: Fix JSON
+        run: find ./out -path './*main.json' | xargs node fix_json.js && find ./out -path './*index.json' | xargs node fix_json.js
+
       - name: Split all >100MB files into parts
         run: >
           for i in $(find ./out -size +100M -not -path './git/*'); do
@@ -68,11 +71,6 @@ jobs:
 
       - name: Remove all >100MB files
         run: find ./out -size +100M -not -path './.git/*' | xargs rm
-
-      - name: Fix JSON
-        run: >
-          find ./out -path './*main.json' | xargs node fix_json.js
-          find ./out -path './*index.json' | xargs node fix_json.js
 
       - name: Create CNAME
         run: echo "api.emiyl.com" > out/CNAME
