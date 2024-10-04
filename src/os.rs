@@ -185,7 +185,7 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                             }
 
                             appledb_object.webImage = OsEntryAppleDBWebImage {
-                                id: json::get_string(&json[field], "id"),
+                                id: json::get_string(&json["appledbWebImage"], "id"),
                                 align: get_align(align, &entry),
                             };
                         }
