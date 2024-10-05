@@ -1,4 +1,4 @@
-use crate::{file, json, OutputEntry, OutputFormat};
+use crate::{file, json, OutputEntry, OutputFormat, adb_web};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -12,24 +12,24 @@ structstruck::strike! {
     #[strikethrough[allow(non_snake_case)]]
     pub struct OsEntry {
         pub os_str: String,
-        version: String,
+        pub version: String,
         safari_version: Vec<String>,
-        build: String,
+        pub build: String,
         pub key: String,
         embeddedOS_build: String,
         bridgeOS_build: String,
         build_train: String,
-        released: String,
-        rc: bool,
-        beta: bool,
-        rsr: bool,
-        internal: bool,
-        preinstalled: Vec<String>,
+        pub released: String,
+        pub rc: bool,
+        pub beta: bool,
+        pub rsr: bool,
+        pub internal: bool,
+        pub preinstalled: Vec<String>,
         notes: String,
         release_notes: String,
         security_notes: String,
         ipd: BTreeMap<String, String>,
-        appledb_web: #[derive(FieldNamesAsArray)] struct OsEntryAppleDBWeb {
+        pub appledb_web: #[derive(FieldNamesAsArray)] pub struct OsEntryAppleDBWeb {
             web_image: struct OsEntryAppleDBWebImage {
                 id: String,
                 align: #[allow(non_camel_case_types)]
@@ -43,24 +43,24 @@ structstruck::strike! {
             api_url: String,
             hide_from_latest_versions: bool
         },
-        device_map: Vec<String>,
+        pub device_map: Vec<String>,
         os_map: Vec<String>,
-        sources: Vec<struct OsEntrySource {
-            r#type: String,
+        pub sources: Vec<pub struct OsEntrySource {
+            pub r#type: String,
             prerequisite_build: Vec<String>,
-            device_map: Vec<String>,
+            pub device_map: Vec<String>,
             os_map: Vec<String>,
             windows_update_details: struct OsEntrySourceWindowsUpdateDetails {
                 update_id: String,
                 revision_id: String,
             },
-            links: Vec<struct OsEntrySourceLink {
+            pub links: Vec<pub struct OsEntrySourceLink {
                 url: String,
                 active: bool,
             }>,
-            hashes: BTreeMap<String, String>,
+            pub hashes: BTreeMap<String, String>,
             skip_update_links: bool,
-            size: u64,
+            pub size: u64,
         }>,
     }
 }
@@ -437,14 +437,21 @@ pub fn process_entry(
     json_value: Value,
     mut value_vec: Vec<Value>,
     output_dir: &String,
+    adb_web: bool
 ) -> (Vec<OutputEntry>, OutputFormat) {
     let mut file_count: u32 = 0;
     let os_entry_vec = get_os_entry_vec_from_path(json_value);
 
     let mut output_entry_vec: Vec<OutputEntry> = Vec::new();
     for os_entry in os_entry_vec {
+        let json = if adb_web {
+            serde_json::to_string(&adb_web::convert_os_entry_to_os_adb_web_entry(os_entry.clone()))
+        } else {
+            serde_json::to_string(&os_entry)
+        }.expect("Failed to convert struct to JSON");
+
         let output_entry = OutputEntry {
-            json: serde_json::to_string(&os_entry).expect("Failed to convert struct to JSON"),
+            json: json,
             key: os_entry.key.replace(';', "/"),
         };
 

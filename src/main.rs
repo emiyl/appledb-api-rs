@@ -5,6 +5,7 @@ mod json;
 mod os;
 mod jailbreak;
 mod bypass;
+mod adb_web;
 use serde_json::{json, Value};
 use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
@@ -15,7 +16,9 @@ enum EntryType {
     Device,
     DeviceGroup,
     Jailbreak,
-    Bypass
+    Bypass,
+
+    OsADBWeb
 }
 
 struct OutputEntry {
@@ -84,11 +87,13 @@ fn write_entry(
     main_index_json_file_vec: &[fs::File; 2],
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir),
+        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, false),
         EntryType::Device => device::process_entry(json_value, output.value_vec),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
         EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
-        EntryType::Bypass => bypass::process_entry(json_value, output.value_vec)
+        EntryType::Bypass => bypass::process_entry(json_value, output.value_vec),
+
+        EntryType::OsADBWeb => os::process_entry(json_value, output.value_vec, output_dir, true)
     };
 
     let output_entry_list = output_entry_tuple.0;
@@ -148,6 +153,7 @@ fn create_entries(
 
     output = match entry_type {
         EntryType::Os => os::finalise_entry(&output_dir_string, output),
+        EntryType::OsADBWeb => os::finalise_entry(&output_dir_string, output),
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir_string,
             &input_vec,
@@ -190,12 +196,19 @@ fn main() {
         "./out/bypass/"
     );
 
+    let os_adbweb_entry = create_entries(
+        EntryType::OsADBWeb,
+        "./appledb/osFiles/",
+        "./out/adbweb/firmware/"
+    );
+
     let file_count = 
         os_entry.file_count +
         device_entry.file_count +
         device_group_entry.file_count +
         jailbreak_entry.file_count +
-        bypass_entry.file_count;
+        bypass_entry.file_count +
+        os_adbweb_entry.file_count;
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);

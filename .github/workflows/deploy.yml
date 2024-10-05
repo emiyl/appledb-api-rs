@@ -72,8 +72,8 @@ jobs:
       - name: Remove all >100MB files
         run: find ./out -size +100M -not -path './.git/*' | xargs rm
 
-      - name: Create CNAME
-        run: echo "api.emiyl.com" > out/CNAME
+      - name: Create CNAME and .nojekyll
+        run: echo "api.emiyl.com" > ./out/CNAME && touch ./out/.nojekyll
 
       - name: Deploy to GitHub Pages
         if: (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) || github.event_name == 'workflow_dispatch'
