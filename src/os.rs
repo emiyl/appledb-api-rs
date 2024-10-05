@@ -204,7 +204,7 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                             let url = Url::parse("https://api.emiyl.com/firmware/")
                                 .expect("Failed to parse URL");
                             let url = url.join(&paths).expect("Failed to join URL");
-                            appledb__webobject.api_url = url.as_str().to_string();
+                            appledb_web_object.api_url = url.as_str().to_string();
                         }
                         "hide_from_latest_versions" => {
                             appledb_web_object.hide_from_latest_versions =
