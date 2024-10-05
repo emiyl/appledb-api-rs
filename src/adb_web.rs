@@ -20,7 +20,8 @@ structstruck::strike! {
         appledb_web: os::OsEntryAppleDBWeb,
         device_map: Vec<struct OsADBWebEntryDevice {
             name: String,
-            key: String
+            key: String,
+            released: Vec<String>
         }>,
         sources: Vec<struct OsADBWebEntrySource {
             r#type: String,
@@ -54,7 +55,8 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry) -> OsADBWebEn
         let name = json::get_string(&json_value, "name");
         device_map.push(OsADBWebEntryDevice {
             name: json::get_string(&json_value, "name"),
-            key: json::get_string(&json_value, "key")
+            key: json::get_string(&json_value, "key"),
+            released: json::get_string_array(&json_value, "released")
         });
     }
 
