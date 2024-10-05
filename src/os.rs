@@ -437,6 +437,7 @@ pub fn process_entry(
     json_value: Value,
     mut value_vec: Vec<Value>,
     output_dir: &String,
+    extra_input_value: &Value,
     adb_web: bool
 ) -> (Vec<OutputEntry>, OutputFormat) {
     let mut file_count: u32 = 0;
@@ -445,7 +446,7 @@ pub fn process_entry(
     let mut output_entry_vec: Vec<OutputEntry> = Vec::new();
     for os_entry in os_entry_vec {
         let json = if adb_web {
-            serde_json::to_string(&adb_web::convert_os_entry_to_os_adb_web_entry(os_entry.clone()))
+            serde_json::to_string(&adb_web::convert_os_entry_to_os_adb_web_entry(os_entry.clone(), extra_input_value))
         } else {
             serde_json::to_string(&os_entry)
         }.expect("Failed to convert struct to JSON");

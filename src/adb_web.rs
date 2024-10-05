@@ -1,7 +1,8 @@
+use serde_json::Value;
 use struct_field_names_as_array::FieldNamesAsArray;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use crate::{file, json, os};
+use crate::{device_group, file, json, os};
 
 structstruck::strike! {
     #[derive(FieldNamesAsArray)]
@@ -23,6 +24,7 @@ structstruck::strike! {
             key: String,
             released: Vec<String>
         }>,
+        device_group_map: Vec<device_group::DeviceGroupEntry>,
         sources: Vec<struct OsADBWebEntrySource {
             r#type: String,
             device_map: Vec<String>,
@@ -33,9 +35,7 @@ structstruck::strike! {
     }
 }
 
-
-
-pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry) -> OsADBWebEntry {
+pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_main_json_value: &Value) -> OsADBWebEntry {
     let mut sources: Vec<OsADBWebEntrySource> = Vec::new();
     for source in os_entry.sources {
         sources.push(OsADBWebEntrySource {
@@ -48,11 +48,10 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry) -> OsADBWebEn
     }
 
     let mut device_map: Vec<OsADBWebEntryDevice> = Vec::new();
-    for device in os_entry.device_map {
+    for device in os_entry.device_map.iter() {
         let path = ["./out/device/key/", &device, ".json"].concat();
         let json_string = file::open_file_to_string(&path);
         let json_value = json::parse_json(&json_string);
-        let name = json::get_string(&json_value, "name");
         device_map.push(OsADBWebEntryDevice {
             name: json::get_string(&json_value, "name"),
             key: json::get_string(&json_value, "key"),
@@ -60,6 +59,19 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry) -> OsADBWebEn
         });
     }
 
+    let mut device_group_map: Vec<device_group::DeviceGroupEntry> = Vec::new();
+
+    for group_value in device_group_main_json_value.as_array().unwrap() {
+        let mut group = device_group::create_device_group_entry_from_json(group_value);
+
+        if group.devices.iter().any(|key| os_entry.device_map.contains(key)) {
+            let filtered_devices: Vec<String> = group.devices.iter().filter(|key| os_entry.device_map.contains(key)).cloned().collect();
+            group.devices = filtered_devices;
+            device_group_map.push(group);
+            break;
+        }
+    }
+    
     OsADBWebEntry {
         os_str: os_entry.os_str,
         version: os_entry.version,
@@ -73,6 +85,7 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry) -> OsADBWebEn
         preinstalled: os_entry.preinstalled,
         appledb_web: os_entry.appledb_web,
         device_map: device_map,
+        device_group_map: device_group_map,
         sources: sources
     }
 }

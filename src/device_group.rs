@@ -102,6 +102,7 @@ pub fn finalise_entry(
             output,
             output_dir,
             main_index_json_file_array,
+            &json!([])
         );
     }
 

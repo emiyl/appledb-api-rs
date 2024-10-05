@@ -85,15 +85,16 @@ fn write_entry(
     mut output: OutputFormat,
     output_dir: &String,
     main_index_json_file_vec: &[fs::File; 2],
+    extra_input_value: &Value
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, false),
+        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value, false),
         EntryType::Device => device::process_entry(json_value, output.value_vec),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
         EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
         EntryType::Bypass => bypass::process_entry(json_value, output.value_vec),
 
-        EntryType::OsADBWeb => os::process_entry(json_value, output.value_vec, output_dir, true)
+        EntryType::OsADBWeb => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value, true)
     };
 
     let output_entry_list = output_entry_tuple.0;
@@ -123,7 +124,8 @@ fn write_entry(
 fn create_entries(
     entry_type: EntryType,
     input_dir: &str,
-    output_dir: &str
+    output_dir: &str,
+    extra_input_value: &Value
 ) -> OutputFormat {
     let output_dir_string = output_dir.to_string();
     let input_vec = Vec::new();
@@ -148,6 +150,7 @@ fn create_entries(
             output,
             &output_dir_string,
             &main_index_json_file_array,
+            extra_input_value
         );
     }
 
@@ -173,33 +176,42 @@ fn main() {
     let os_entry = create_entries(
         EntryType::Os,
         "./appledb/osFiles/",
-        "./out/firmware/"
+        "./out/firmware/",
+        &json!([])
     );
     let device_entry = create_entries(
         EntryType::Device,
         "./appledb/deviceFiles/",
-        "./out/device/key/"
+        "./out/device/key/",
+        &json!([])
     );
     let device_group_entry = create_entries(
         EntryType::DeviceGroup,
         "./appledb/deviceGroupFiles/",
-        "./out/device/group/"
+        "./out/device/group/",
+        &json!([])
     );
     let jailbreak_entry = create_entries(
         EntryType::Jailbreak,
         "./tmp/jailbreak/",
-        "./out/jailbreak/"
+        "./out/jailbreak/",
+        &json!([])
     );
     let bypass_entry = create_entries(
         EntryType::Bypass, 
         "./appledb/bypassApps",
-        "./out/bypass/"
+        "./out/bypass/",
+        &json!([])
     );
+
+    let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
+    let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
 
     let os_adbweb_entry = create_entries(
         EntryType::OsADBWeb,
         "./appledb/osFiles/",
-        "./out/adbweb/firmware/"
+        "./out/adbweb/firmware/",
+        &device_group_main_json_value
     );
 
     let file_count = 
