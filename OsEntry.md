@@ -1,6 +1,6 @@
 # OsEntry
 
-## osStr
+## os_str
 
 Type: `String`  
 Examples: `"iOS"`, `"macOS"`, `"XCode"`, `"AirPods Firmware"`, `"Smart Battery Case Firmware"`  
@@ -16,7 +16,7 @@ Required: Sometimes
 
 The firmware version of the entry. This string is required if `build` is not present.
 
-## safariVersion
+## safari_version
 
 Type: `String`  
 Examples: `"16.0"`, `"11.1"`, `"9.1.1"`  

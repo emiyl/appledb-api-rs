@@ -4,7 +4,6 @@ use serde_json::Value;
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
-#[allow(non_snake_case)]
 struct UrlStruct {
     name: String,
     url: String
@@ -13,13 +12,12 @@ struct UrlStruct {
 structstruck::strike! {
     #[derive(FieldNamesAsArray)]
     #[strikethrough[derive(Default, Serialize, Clone)]]
-    #[strikethrough[allow(non_snake_case)]]
     pub struct JailbreakEntry {
         name: String,
         key: String,
         alias: Vec<String>,
         priority: u64,
-        hideFromGuide: bool,
+        hide_from_guide: bool,
         info: #[derive(FieldNamesAsArray)] struct JailbreakEntryInfo {
             website: UrlStruct,
             wiki: UrlStruct,
@@ -27,11 +25,11 @@ structstruck::strike! {
                 name: String,
                 url: String,
                 pkgman: String,
-                updateLink: Vec<UrlStruct>,
+                update_link: Vec<UrlStruct>,
                 firmwares: Vec<String>,
                 devices: Vec<String>
             }>,
-            latestVer: String,
+            latest_ver: String,
             color: String,
             icon: String,
             notes: String,
@@ -91,7 +89,7 @@ fn match_info(
                     "name" => guide.name = json::get_string(json, field),
                     "url" => guide.url = json::get_string(json, field),
                     "pkgman" => guide.pkgman = json::get_string(json, field),
-                    "updateLink" => guide.updateLink = get_update_link(&json[field]),
+                    "update_link" => guide.update_link = get_update_link(&json["update_link"]),
                     "firmwares" => guide.firmwares = json::get_string_array(json, field),
                     "devices" => guide.devices = json::get_string_array(json, field),
                     _ => {}
@@ -112,7 +110,7 @@ fn match_info(
             }
             info.guide = guide_vec;
         },
-        "latestVer" => info.latestVer = json::get_string(&json, field),
+        "latest_ver" => info.latest_ver = json::get_string(&json, "latestVer"),
         "color" => info.color = json::get_string(&json, field),
         "icon" => info.icon = json::get_string(&json, field),
         "notes" => info.notes = json::get_string(&json, field),
@@ -143,7 +141,7 @@ fn match_entry(
         },
         "alias" => entry.alias = json::get_vec_from_string_or_string_vec(json, field),
         "priority" => entry.priority = json::get_u64(json, field),
-        "hideFromGuide" => entry.hideFromGuide = json::get_bool(json, field),
+        "hide_from_guide" => entry.hide_from_guide = json::get_bool(json, "hideFromGuide"),
         "info" => {
             let mut info_object: JailbreakEntryInfo = Default::default();
             let info_field_list = JailbreakEntryInfo::FIELD_NAMES_AS_ARRAY;

@@ -4,7 +4,6 @@ use serde_json::{Map, Value};
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
-#[allow(non_snake_case)]
 pub struct DeviceEntry {
     name: String,
     pub key: String,
@@ -20,7 +19,7 @@ pub struct DeviceEntry {
     info: Value,
     iBridge: String,
     group: bool,
-    windowsStoreId: String,
+    windows_store_id: String,
 }
 
 fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
@@ -53,7 +52,7 @@ fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
             "info" => entry.info = json::get_object(json, field),
             "iBridge" => entry.iBridge = json::get_string(json, field),
             "group" => entry.group = json::get_bool(json, field),
-            "windowsStoreId" => entry.windowsStoreId = json::get_string(json, field),
+            "windows_store_id" => entry.windows_store_id = json::get_string(json, "windowsStoreId"),
             _ => println!("Unknown key"),
         }
     }

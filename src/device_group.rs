@@ -5,13 +5,12 @@ use std::fs;
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
-#[allow(non_snake_case)]
 pub struct DeviceGroupEntry {
     name: String,
     pub key: String,
     r#type: String,
     pub devices: Vec<String>,
-    hideChildren: bool,
+    hide_children: bool,
     subgroups: Vec<DeviceGroupEntry>,
 }
 
@@ -31,7 +30,7 @@ pub fn create_device_group_entry_from_json(json: &Value) -> DeviceGroupEntry {
             }
             "r#type" => entry.r#type = json::get_string(json, "type"),
             "devices" => entry.devices = json::get_string_array(json, field),
-            "hideChildren" => entry.hideChildren = json::get_bool(json, field),
+            "hide_children" => entry.hide_children = json::get_bool(json, "hideChildren"),
             "subgroups" => {
                 let mut subgroup_vec: Vec<DeviceGroupEntry> = Vec::new();
                 if !json[field].is_array() {

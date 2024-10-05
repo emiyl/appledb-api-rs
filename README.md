@@ -2,14 +2,14 @@
 
 ```js
 OsEntry {
-  osStr: String,
+  os_str: String,
   version: String,
-  safariVersion: Array<String>,
+  safari_version: Array<String>,
   build: String,
   key: String,
-  embeddedOSBuild: String,
-  bridgeOSBuild: String,
-  buildTrain: String,
+  embeddedOS_build: String,
+  bridgeOS_build: String,
+  build_train: String,
   released: String,
   rc: Boolean,
   beta: Boolean,
@@ -17,26 +17,26 @@ OsEntry {
   internal: Boolean,
   preinstalled: Array<String>,
   notes: String,
-  releaseNotes: String,
-  securityNotes: String,
+  release_notes: String,
+  security_notes: String,
   ipd: Object<String, String>,
   appledb: {
-    webImage: {
+    web_image: {
           id: String,
           align: String,
       },
-      webUrl: String,
-      apiUrl: String,
-      hideFromLatestVersions: Boolean
+      web_url: String,
+      api_url: String,
+      hide_from_latest_versions: Boolean
   },
-  deviceMap: Array<String>,
-  osMap: Array<String>,
+  device_map: Array<String>,
+  os_map: Array<String>,
   sources: Array< {
       type: String,
-      prerequisiteBuild: Array<String>,
-      deviceMap: Array<String>,
-      osMap: Array<String>,
-      windowsUpdateDetails: {
+      prerequisite_build: Array<String>,
+      device_map: Array<String>,
+      os_map: Array<String>,
+      windows_update_details: {
           updateId: String,
           revisionId: String
       },
@@ -45,7 +45,7 @@ OsEntry {
           active: Boolean
       }>,
       hashes: Object<String, String>,
-      skipUpdateLinks: Boolean,
+      skip_update_links: Boolean,
       size: Number
   }>
 }
@@ -65,7 +65,7 @@ DeviceEntry {
     info: Value,
     iBridge: String,
     group: Boolean,
-    windowsStoreId: String,
+    windows_store_id: String,
 }
 
 JailbreakEntry {
@@ -73,7 +73,7 @@ JailbreakEntry {
     key: String,
     alias: Array<String>,
     priority: Value,
-    hideFromGuide: Boolean,
+    hide_from_guide: Boolean,
     info: {
         website: {
             name: String,
@@ -87,12 +87,12 @@ JailbreakEntry {
             name: String,
             url: String,
             pkgman: String,
-            updateLink: Array<{
+            update_link: Array<{
                 name: String,
                 url: String
             }>
         }>,
-        latestVer: String,
+        latest_ver: String,
         color: String,
         icon: String,
         notes: String,
@@ -109,7 +109,7 @@ JailbreakEntry {
 
 BypassEntry {
     name: String,
-    bundleId: String,
+    bundle_id: String,
     uri: String,
     icon: String,
     notes: String,

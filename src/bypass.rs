@@ -6,10 +6,9 @@ use struct_field_names_as_array::FieldNamesAsArray;
 structstruck::strike! {
     #[derive(FieldNamesAsArray)]
     #[strikethrough[derive(Default, Serialize, Clone, Debug)]]
-    #[strikethrough[allow(non_snake_case)]]
     pub struct BypassEntry {
         name: String,
-        bundleId: String,
+        bundle_id: String,
         uri: String,
         icon: String,
         notes: String,
@@ -77,7 +76,7 @@ fn match_entry(
 ) -> BypassEntry {
     match field {
         "name" => entry.name = json::get_string(json, field),
-        "bundleId" => entry.bundleId = json::get_string(json, field),
+        "bundle_id" => entry.bundle_id = json::get_string(json, "bundleId"),
         "uri" => entry.uri = json::get_string(json, field),
         "icon" => entry.icon = json::get_string(json, field),
         "notes" => entry.notes = json::get_string(json, field),
@@ -108,7 +107,7 @@ pub fn process_entry(
     (
         vec![OutputEntry {
             json: serde_json::to_string(&bypass_entry).expect("Failed to convert struct to JSON"),
-            key: bypass_entry.bundleId.to_owned(),
+            key: bypass_entry.bundle_id.to_owned(),
         }],
         OutputFormat {
             value_vec,
