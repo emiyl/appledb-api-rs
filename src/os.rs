@@ -29,7 +29,7 @@ structstruck::strike! {
         release_notes: String,
         security_notes: String,
         ipd: BTreeMap<String, String>,
-        appledb: #[derive(FieldNamesAsArray)] struct OsEntryAppleDB {
+        appledb_web: #[derive(FieldNamesAsArray)] struct OsEntryAppleDBWeb {
             web_image: struct OsEntryAppleDBWebImage {
                 id: String,
                 align: #[allow(non_camel_case_types)]
@@ -152,12 +152,12 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                 }
                 entry.ipd = ipd_map;
             }
-            "appledb" => {
-                let mut appledb_object: OsEntryAppleDB = Default::default();
-                let appledb_field_list = OsEntryAppleDB::FIELD_NAMES_AS_ARRAY;
+            "appledb_web" => {
+                let mut appledb_web_object: OsEntryAppleDBWeb = Default::default();
+                let appledb_web_field_list = OsEntryAppleDBWeb::FIELD_NAMES_AS_ARRAY;
 
-                for appledb_field in appledb_field_list {
-                    match appledb_field {
+                for appledb_web_field in appledb_web_field_list {
+                    match appledb_web_field {
                         "web_image" => {
                             if !json_field_list.contains(&&"appledbWebImage".to_string()) {
                                 continue;
@@ -184,7 +184,7 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                                 OsEntryAppleDBWebImageAlign::left
                             }
 
-                            appledb_object.web_image = OsEntryAppleDBWebImage {
+                            appledb_web_object.web_image = OsEntryAppleDBWebImage {
                                 id: json::get_string(&json["appledbWebImage"], "id"),
                                 align: get_align(align, &entry),
                             };
@@ -196,7 +196,7 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                             let url = Url::parse("https://appledb.dev/firmware/")
                                 .expect("Failed to parse URL");
                             let url = url.join(&paths).expect("Failed to join URL");
-                            appledb_object.web_url = url.as_str().to_string();
+                            appledb_web_object.web_url = url.as_str().to_string();
                         }
                         "api_url" => {
                             let paths =
@@ -204,17 +204,17 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                             let url = Url::parse("https://api.emiyl.com/firmware/")
                                 .expect("Failed to parse URL");
                             let url = url.join(&paths).expect("Failed to join URL");
-                            appledb_object.api_url = url.as_str().to_string();
+                            appledb__webobject.api_url = url.as_str().to_string();
                         }
                         "hide_from_latest_versions" => {
-                            appledb_object.hide_from_latest_versions =
+                            appledb_web_object.hide_from_latest_versions =
                                 json::get_bool(json, "hideFromLatestVersions")
                         }
-                        _ => println!("WARNING: Unknown AppleDB field: {}", appledb_field),
+                        _ => println!("WARNING: Unknown AppleDB field: {}", appledb_web_field),
                     }
                 }
 
-                entry.appledb = appledb_object;
+                entry.appledb_web = appledb_web_object;
             }
             "device_map" => entry.device_map = json::get_string_array(json, "deviceMap"),
             "os_map" => entry.os_map = json::get_string_array(json, "osMap"),

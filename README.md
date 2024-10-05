@@ -20,7 +20,7 @@ OsEntry {
   release_notes: String,
   security_notes: String,
   ipd: Object<String, String>,
-  appledb: {
+  appledb_web: {
     web_image: {
           id: String,
           align: String,
