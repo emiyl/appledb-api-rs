@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 use struct_field_names_as_array::FieldNamesAsArray;
 
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
+#[allow(non_snake_case)]
 pub struct DeviceEntry {
     name: String,
     pub key: String,
