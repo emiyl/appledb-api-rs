@@ -204,7 +204,14 @@ fn main() {
         &json!([])
     );
 
-    /*let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
+    let mut file_count = 
+        os_entry.file_count +
+        device_entry.file_count +
+        device_group_entry.file_count +
+        jailbreak_entry.file_count +
+        bypass_entry.file_count;
+
+    let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
     println!("here!");
     let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
     println!("here too!");
@@ -214,15 +221,9 @@ fn main() {
         "./appledb/osFiles/",
         "./out/adbweb/firmware/",
         &device_group_main_json_value
-    );*/
+    );
 
-    let file_count = 
-        os_entry.file_count +
-        device_entry.file_count +
-        device_group_entry.file_count +
-        jailbreak_entry.file_count +
-        bypass_entry.file_count/* +
-        os_adbweb_entry.file_count*/;
+    file_count += os_adbweb_entry.file_count;
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
