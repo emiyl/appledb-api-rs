@@ -213,6 +213,7 @@ fn main() {
 
     let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
     println!("here!");
+    println!("{}", device_group_main_json_string);
     let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
     println!("here too!");
 
