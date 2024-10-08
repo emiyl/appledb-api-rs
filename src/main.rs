@@ -42,23 +42,6 @@ fn main() {
         device_group_entry.file_count +
         jailbreak_entry.file_count +
         bypass_entry.file_count;
-
-    /*let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
-    println!("here!");
-    println!("{}", device_group_main_json_string);
-    let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
-    println!("here too!");
-
-    println!("{:?}", device_group_main_json_value);
-
-    let os_adbweb_entry = create_entries(
-        EntryType::OsADBWeb,
-        "./appledb/osFiles/",
-        "./out/adbweb/firmware/",
-        &device_group_main_json_value
-    );
-
-    file_count += os_adbweb_entry.file_count;*/
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);

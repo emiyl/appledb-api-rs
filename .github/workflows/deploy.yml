@@ -47,7 +47,7 @@ jobs:
           components: clippy
           
       - name: Lint
-        run: cargo clippy --manifest-path adb_web-rs/Cargo.toml
+        run: cargo clippy --manifest-path adb-web-rs/Cargo.toml
 
   deploy:
     name: Deploy

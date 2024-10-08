@@ -1,16 +1,9 @@
-#[path = "./bypass.rs"]
 pub mod bypass;
-#[path = "./device_group.rs"]
 pub mod device_group;
-#[path = "./device.rs"]
 pub mod device;
-#[path = "./file.rs"]
 pub mod file;
-#[path = "./jailbreak.rs"]
 pub mod jailbreak;
-#[path = "./json.rs"]
 pub mod json;
-#[path = "./os.rs"]
 pub mod os;
 
 use serde_json::{json, Value};
