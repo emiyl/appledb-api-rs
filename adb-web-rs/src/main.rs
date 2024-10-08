@@ -1,4 +1,4 @@
-#[path = "../../common/main.rs"]
+#[path = "../../src/common/mod.rs"]
 mod common;
 mod adbweb_os;
 

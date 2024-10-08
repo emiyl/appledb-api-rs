@@ -1,4 +1,3 @@
-#[path = "../../common/main.rs"]
 mod common;
 
 use serde_json::json;
