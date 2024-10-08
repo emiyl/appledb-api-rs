@@ -2,7 +2,7 @@ use serde_json::Value;
 use struct_field_names_as_array::FieldNamesAsArray;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use crate::{device_group, file, json, os};
+use crate::common::{device_group, file, json, os};
 
 structstruck::strike! {
     #[derive(FieldNamesAsArray)]
@@ -60,18 +60,42 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_
     }
 
     let mut device_group_map: Vec<device_group::DeviceGroupEntry> = Vec::new();
+    let mut processed_devices_vec: Vec<String> = Vec::new();
 
-    for group_value in device_group_main_json_value.as_array().unwrap() {
-        let mut group = device_group::create_device_group_entry_from_json(group_value);
+    let group_value_vec = device_group_main_json_value.as_array().unwrap();
+    let group_entry_vec: Vec<device_group::DeviceGroupEntry> = group_value_vec.iter().map(|g| device_group::create_device_group_entry_from_json(g)).collect();
 
-        if group.devices.iter().any(|key| os_entry.device_map.contains(key)) {
-            let filtered_devices: Vec<String> = group.devices.iter().filter(|key| os_entry.device_map.contains(key)).cloned().collect();
-            group.devices = filtered_devices;
-            device_group_map.push(group);
-            break;
+    for device in device_map.iter() {
+        let device_key = &device.key;
+        if processed_devices_vec.contains(device_key) { continue }
+
+        let mut group: device_group::DeviceGroupEntry = Default::default();
+        for group_entry in group_entry_vec.iter() {
+            if group_entry.devices.contains(device_key) {
+                group = group_entry.clone();
+                break;
+            }
         }
+
+        if group.devices.len() < 1 {
+            group = device_group::DeviceGroupEntry {
+                name: device.name.clone(),
+                key: device.key.clone(),
+                r#type: "".to_string(),
+                devices: [device.key.clone()].to_vec(),
+                hide_children: false,
+                subgroups: [].to_vec()
+            }
+        }
+
+        group.devices = group.devices.iter().filter(|key| os_entry.device_map.contains(key)).cloned().collect();
+        for key in group.devices.iter() {
+            processed_devices_vec.push(key.to_string());
+        }
+
+        device_group_map.push(group);
     }
-    
+
     OsADBWebEntry {
         os_str: os_entry.os_str,
         version: os_entry.version,

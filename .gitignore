@@ -1,4 +1,5 @@
-/target
+adb-web-rs/target
+api-rs/target
 out/
 tmp/
 .DS_Store

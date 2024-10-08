@@ -1,35 +1,21 @@
-mod device;
-mod device_group;
-mod file;
-mod json;
-mod os;
-mod jailbreak;
-mod bypass;
-mod adb_web;
+#[path = "./bypass.rs"]
+pub mod bypass;
+#[path = "./device_group.rs"]
+pub mod device_group;
+#[path = "./device.rs"]
+pub mod device;
+#[path = "./file.rs"]
+pub mod file;
+#[path = "./jailbreak.rs"]
+pub mod jailbreak;
+#[path = "./json.rs"]
+pub mod json;
+#[path = "./os.rs"]
+pub mod os;
+
 use serde_json::{json, Value};
 use std::{fs, io::Write, os::unix::fs::FileExt};
 use walkdir::WalkDir;
-
-#[derive(PartialEq)]
-enum EntryType {
-    Os,
-    Device,
-    DeviceGroup,
-    Jailbreak,
-    Bypass,
-
-    OsADBWeb
-}
-
-struct OutputEntry {
-    json: String,
-    key: String,
-}
-
-struct OutputFormat {
-    value_vec: Vec<Value>,
-    file_count: u32,
-}
 
 macro_rules! filter_dir_recurse {
     ($dir:expr,$extension:expr) => {
@@ -51,6 +37,26 @@ macro_rules! filter_dir_recurse {
         }
     };
 }
+
+#[derive(PartialEq)]
+pub enum EntryType {
+    Os,
+    Device,
+    DeviceGroup,
+    Jailbreak,
+    Bypass
+}
+
+pub struct OutputEntry {
+    json: String,
+    key: String,
+}
+
+pub struct OutputFormat {
+    value_vec: Vec<Value>,
+    pub file_count: u32,
+}
+
 
 fn create_main_index_json_file(output_dir: &str) -> [fs::File; 2] {
     let main_index_json_path_array =
@@ -88,13 +94,11 @@ fn write_entry(
     extra_input_value: &Value
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
-        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value, false),
+        EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value),
         EntryType::Device => device::process_entry(json_value, output.value_vec),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
         EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
         EntryType::Bypass => bypass::process_entry(json_value, output.value_vec),
-
-        EntryType::OsADBWeb => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value, true)
     };
 
     let output_entry_list = output_entry_tuple.0;
@@ -121,7 +125,7 @@ fn write_entry(
     output
 }
 
-fn create_entries(
+pub fn create_entries(
     entry_type: EntryType,
     input_dir: &str,
     output_dir: &str,
@@ -155,8 +159,10 @@ fn create_entries(
     }
 
     output = match entry_type {
+        #[cfg(feature = "api")]
         EntryType::Os => os::finalise_entry(&output_dir_string, output),
-        EntryType::OsADBWeb => os::finalise_entry(&output_dir_string, output),
+        #[cfg(feature = "adb_web")]
+        EntryType::Os => os::finalise_entry(&output_dir_string, output),
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir_string,
             &input_vec,
@@ -169,63 +175,4 @@ fn create_entries(
     output.file_count += finalise_main_index_json_file(&main_index_json_file_array);
 
     output
-}
-
-fn main() {
-    let now = std::time::Instant::now();
-    let os_entry = create_entries(
-        EntryType::Os,
-        "./appledb/osFiles/",
-        "./out/firmware/",
-        &json!([])
-    );
-    let device_entry = create_entries(
-        EntryType::Device,
-        "./appledb/deviceFiles/",
-        "./out/device/key/",
-        &json!([])
-    );
-    let device_group_entry = create_entries(
-        EntryType::DeviceGroup,
-        "./appledb/deviceGroupFiles/",
-        "./out/device/group/",
-        &json!([])
-    );
-    let jailbreak_entry = create_entries(
-        EntryType::Jailbreak,
-        "./tmp/jailbreak/",
-        "./out/jailbreak/",
-        &json!([])
-    );
-    let bypass_entry = create_entries(
-        EntryType::Bypass, 
-        "./appledb/bypassApps",
-        "./out/bypass/",
-        &json!([])
-    );
-
-    let mut file_count = 
-        os_entry.file_count +
-        device_entry.file_count +
-        device_group_entry.file_count +
-        jailbreak_entry.file_count +
-        bypass_entry.file_count;
-
-    let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
-    println!("here!");
-    println!("{}", device_group_main_json_string);
-    let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
-    println!("here too!");
-
-    let os_adbweb_entry = create_entries(
-        EntryType::OsADBWeb,
-        "./appledb/osFiles/",
-        "./out/adbweb/firmware/",
-        &device_group_main_json_value
-    );
-
-    file_count += os_adbweb_entry.file_count;
-    
-    let elapsed = now.elapsed();
-    println!("Processed {} files in {:.2?}", file_count, elapsed);
 }

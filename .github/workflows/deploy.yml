@@ -54,14 +54,23 @@ jobs:
           toolchain: stable
           components: clippy
 
-      - name: Build
-        run: cargo build --release
+      - name: Build API
+        run: cargo build --manifest-path api-rs/Cargo.toml --release
 
-      - name: Deploy
-        run: cargo run --release
+      - name: Deploy API
+        run: cargo run --manifest-path api-rs/Cargo.toml --release
 
-      - name: Fix JSON
+      - name: Fix API JSON
         run: find ./out -path './*main.json' | xargs node fix_json.js && find ./out -path './*index.json' | xargs node fix_json.js
+
+      - name: Build ADB Web 
+        run: cargo build --manifest-path adb-web-rs/Cargo.toml --release
+
+      - name: Deploy ADB Web
+        run: cargo run --manifest-path adb-web-rs/Cargo.toml --release
+
+      - name: Fix ADB Web JSON
+        run: find ./out/adbweb -path './*main.json' | xargs node fix_json.js && find ./out/adbweb -path './*index.json' | xargs node fix_json.js
 
       - name: Split all >100MB files into parts
         run: >

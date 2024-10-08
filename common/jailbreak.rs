@@ -1,4 +1,4 @@
-use crate::{json, OutputEntry, OutputFormat};
+use crate::common::{json, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::Value;
 use struct_field_names_as_array::FieldNamesAsArray;

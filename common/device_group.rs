@@ -1,17 +1,17 @@
-use crate::{json, write_entry, OutputEntry, OutputFormat};
+use crate::common::{json, write_entry, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::Value;
 use std::fs;
 use struct_field_names_as_array::FieldNamesAsArray;
 
-#[derive(FieldNamesAsArray, Default, Serialize, Clone)]
+#[derive(FieldNamesAsArray, Default, Serialize, Clone, Debug)]
 pub struct DeviceGroupEntry {
-    name: String,
+    pub name: String,
     pub key: String,
-    r#type: String,
+    pub r#type: String,
     pub devices: Vec<String>,
-    hide_children: bool,
-    subgroups: Vec<DeviceGroupEntry>,
+    pub hide_children: bool,
+    pub subgroups: Vec<DeviceGroupEntry>,
 }
 
 pub fn create_device_group_entry_from_json(json: &Value) -> DeviceGroupEntry {
@@ -97,12 +97,12 @@ pub fn finalise_entry(
     };
     for device in devices_not_in_device_groups_vec {
         output = write_entry(
-            &crate::EntryType::DeviceGroup,
+            &crate::common::EntryType::DeviceGroup,
             device.to_owned(),
             output,
             output_dir,
             main_index_json_file_array,
-            &json!([])
+            &json!("[]")
         );
     }
 

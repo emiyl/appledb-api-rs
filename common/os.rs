@@ -1,4 +1,4 @@
-use crate::{file, json, OutputEntry, OutputFormat, adb_web};
+use crate::common::{file, json, OutputEntry, OutputFormat};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -437,19 +437,18 @@ pub fn process_entry(
     json_value: Value,
     mut value_vec: Vec<Value>,
     output_dir: &String,
-    extra_input_value: &Value,
-    adb_web: bool
+    extra_input_value: &Value
 ) -> (Vec<OutputEntry>, OutputFormat) {
     let mut file_count: u32 = 0;
     let os_entry_vec = get_os_entry_vec_from_path(json_value);
 
     let mut output_entry_vec: Vec<OutputEntry> = Vec::new();
     for os_entry in os_entry_vec {
-        let json = if adb_web {
-            serde_json::to_string(&adb_web::convert_os_entry_to_os_adb_web_entry(os_entry.clone(), extra_input_value))
-        } else {
-            serde_json::to_string(&os_entry)
-        }.expect("Failed to convert struct to JSON");
+        #[cfg(feature = "api")]
+        let json = serde_json::to_string(&os_entry).expect("Failed to convert struct to JSON");
+        
+        #[cfg(feature = "adb_web")]
+        let json = serde_json::to_string(&crate::adbweb_os::convert_os_entry_to_os_adb_web_entry(os_entry.clone(), extra_input_value)).expect("Failed to convert struct to JSON");
 
         let output_entry = OutputEntry {
             json: json,
