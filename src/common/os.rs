@@ -231,30 +231,30 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                     for source_field in source_field_list {
                         match source_field.as_str() {
                             "type" => new_source.r#type = json::get_string(source, source_field),
-                            "prerequisite_build" => {
+                            "prerequisiteBuild" => {
                                 if source[source_field].is_array() {
                                     new_source.prerequisite_build =
-                                        json::get_string_array(source, "prerequisiteBuild")
+                                        json::get_string_array(source, source_field)
                                 } else if source[source_field].is_string() {
                                     new_source.prerequisite_build =
-                                        vec![json::get_string(source, "prerequisiteBuild")]
+                                        vec![json::get_string(source, source_field)]
                                 }
                             }
-                            "device_map" => {
-                                new_source.device_map = json::get_string_array(source, "deviceMap")
+                            "deviceMap" => {
+                                new_source.device_map = json::get_string_array(source, source_field);
                             }
-                            "os_map" => {
-                                new_source.os_map = json::get_string_array(source, "osMap")
+                            "osMap" => {
+                                new_source.os_map = json::get_string_array(source, source_field)
                             }
-                            "windows_update_details" => {
+                            "windowsUpdateDetails" => {
                                 new_source.windows_update_details =
                                     OsEntrySourceWindowsUpdateDetails {
                                         update_id: json::get_string(
-                                            &source["windowsUpdateDetails"],
+                                            &source[source_field],
                                             "updateId",
                                         ),
                                         revision_id: json::get_string(
-                                            &source["windowsUpdateDetails"],
+                                            &source[source_field],
                                             "revisionId",
                                         ),
                                     }
@@ -283,8 +283,8 @@ fn create_os_entry_from_json(json: &Value) -> OsEntry {
                                 }
                                 new_source.hashes = hash_map;
                             }
-                            "skip_update_links" => {
-                                new_source.skip_update_links = json::get_bool(source, "skipUpdateLinks")
+                            "skipUpdateLinks" => {
+                                new_source.skip_update_links = json::get_bool(source, source_field)
                             }
                             "size" => new_source.size = json::get_u64(source, source_field),
                             _ => {}
