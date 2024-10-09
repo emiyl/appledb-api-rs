@@ -1,0 +1,2 @@
+[{"os_str":"Tarmac","version":"2.1.17","build":"","key":"Tarmac;2.1.17","released":"1970-01-01","rc":false,"beta":false,"rsr":false,"internal":true,"preinstalled":[],"appledb_web":{"web_image":{"id":"","align":"left"},"web_url":"https://appledb.dev/firmware/Tarmac/2.1.17.html","api_url":"https://api.emiyl.com/firmware/Tarmac/2.1.17.json","hide_from_latest_versions":false},"device_map":[{"name":"Tarmac","key":"Tarmac","released":[]}],"device_group_map":[{"name":"Tarmac","key":"Tarmac","type":"","devices":["Tarmac"],"hide_children":false,"subgroups":[]}],"sources":[]}]
+
