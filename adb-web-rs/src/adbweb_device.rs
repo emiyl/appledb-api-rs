@@ -30,7 +30,6 @@ structstruck::strike! {
             preinstalled: Vec<String>,
             sources: Vec<struct DeviceADBWebEntryOsEntrySource {
                 r#type: String,
-                device_map: Vec<String>,
                 link: String,
             }>,
         }>
