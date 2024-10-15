@@ -88,7 +88,7 @@ fn write_entry(
 ) -> OutputFormat {
     let output_entry_tuple = match entry_type {
         EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value),
-        EntryType::Device => device::process_entry(json_value, output.value_vec),
+        EntryType::Device => device::process_entry(json_value, output.value_vec, extra_input_value),
         EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
         EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
         EntryType::Bypass => bypass::process_entry(json_value, output.value_vec),

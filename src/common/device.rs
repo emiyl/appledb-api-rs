@@ -6,15 +6,15 @@ use struct_field_names_as_array::FieldNamesAsArray;
 #[derive(FieldNamesAsArray, Default, Serialize, Clone)]
 #[allow(non_snake_case)]
 pub struct DeviceEntry {
-    name: String,
+    pub name: String,
     pub key: String,
-    r#type: String,
-    identifier: Vec<String>,
-    model: Vec<String>,
-    board: Vec<String>,
-    released: Vec<String>,
-    soc: Vec<String>,
-    arch: String,
+    pub r#type: String,
+    pub identifier: Vec<String>,
+    pub model: Vec<String>,
+    pub board: Vec<String>,
+    pub released: Vec<String>,
+    pub soc: Vec<String>,
+    pub arch: String,
     internal: bool,
     alias: Vec<String>,
     info: Value,
@@ -64,6 +64,7 @@ fn create_device_entry_from_json(json: &Value) -> DeviceEntry {
 pub fn process_entry(
     json_value: Value,
     mut value_vec: Vec<Value>,
+    extra_input_value: &Value
 ) -> (Vec<OutputEntry>, OutputFormat) {
     let device_entry = create_device_entry_from_json(&json_value);
     let mut map: Map<String, Value> = Map::new();
@@ -91,7 +92,10 @@ pub fn process_entry(
 
     (
         vec![OutputEntry {
+            #[cfg(feature = "api")]
             json: serde_json::to_string(&device_entry).expect("Failed to convert struct to JSON"),
+            #[cfg(feature = "adb_web")]
+            json: serde_json::to_string(&crate::adbweb_device::convert_device_entry_to_device_adb_web_entry(device_entry.clone(), extra_input_value)).expect("Failed to convert struct to JSON"),
             key: device_entry.key.to_owned(),
         }],
         OutputFormat {
