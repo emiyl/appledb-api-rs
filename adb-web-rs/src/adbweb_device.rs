@@ -52,12 +52,15 @@ pub fn convert_device_entry_to_device_adb_web_entry(device_entry: device::Device
             let source_type = json::get_string(&source_data, "type");
             if source_type == "ota".to_string() { continue }
 
+            let device_map = json::get_string_array(&source_data, "device_map");
+            if !device_map.contains(&device_entry.key) { continue };
+
             let link_array = source_data["links"].as_array().unwrap();
             let primary_link = &link_array[0];
 
             sources.push(DeviceADBWebEntryOsEntrySource {
                 r#type: source_type,
-                device_map: json::get_string_array(&source_data, "device_map"),
+                device_map: device_map,
                 link: json::get_string(&primary_link, "url")
             })
         }
