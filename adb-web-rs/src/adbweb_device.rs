@@ -30,6 +30,7 @@ structstruck::strike! {
             preinstalled: Vec<String>,
             sources: Vec<struct DeviceADBWebEntryOsEntrySource {
                 r#type: String,
+                device_map: Vec<String>
                 link: String,
             }>,
         }>
@@ -59,6 +60,7 @@ pub fn convert_device_entry_to_device_adb_web_entry(device_entry: device::Device
 
             sources.push(DeviceADBWebEntryOsEntrySource {
                 r#type: source_type,
+                device_map: device_map,
                 link: json::get_string(&primary_link, "url")
             })
         }
