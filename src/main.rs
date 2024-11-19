@@ -3,6 +3,11 @@ mod common;
 use serde_json::json;
 use crate::common::{create_entries, EntryType};
 
+use peak_alloc::PeakAlloc;
+
+#[global_allocator]
+static PEAK_ALLOC: PeakAlloc = PeakAlloc;
+
 fn main() {
     let now = std::time::Instant::now();
     let os_entry = create_entries(
@@ -45,4 +50,7 @@ fn main() {
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
+
+    let peak_mem = PEAK_ALLOC.peak_usage_as_mb();
+    println!("PEAK_ALLOC: {:.2?} MB", peak_mem);
 }

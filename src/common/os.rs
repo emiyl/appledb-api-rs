@@ -451,7 +451,7 @@ pub fn process_entry(
         let json = serde_json::to_string(&crate::adbweb_os::convert_os_entry_to_os_adb_web_entry(os_entry.clone(), extra_input_value)).expect("Failed to convert struct to JSON");
 
         let output_entry = OutputEntry {
-            json: json,
+            json,
             key: os_entry.key.replace(';', "/"),
         };
 

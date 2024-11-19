@@ -110,14 +110,14 @@ fn match_info(
             }
             info.guide = guide_vec;
         },
-        "latest_ver" => info.latest_ver = json::get_string(&json, "latestVer"),
-        "color" => info.color = json::get_string(&json, field),
-        "icon" => info.icon = json::get_string(&json, field),
-        "notes" => info.notes = json::get_string(&json, field),
-        "jailbreaksmeapp" => info.jailbreaksmeapp = json::get_bool(&json, field),
-        "r#type" => info.r#type = json::get_string(&json, "type"),
-        "firmwares" => info.firmwares = json::get_string_array(&json, field),
-        "soc" => info.soc = json::get_string(&json, field),
+        "latest_ver" => info.latest_ver = json::get_string(json, "latestVer"),
+        "color" => info.color = json::get_string(json, field),
+        "icon" => info.icon = json::get_string(json, field),
+        "notes" => info.notes = json::get_string(json, field),
+        "jailbreaksmeapp" => info.jailbreaksmeapp = json::get_bool(json, field),
+        "r#type" => info.r#type = json::get_string(json, "type"),
+        "firmwares" => info.firmwares = json::get_string_array(json, field),
+        "soc" => info.soc = json::get_string(json, field),
         _ => println!("WARNING: Unknown info field: {}", field),
     }
 
@@ -147,13 +147,13 @@ fn match_entry(
             let info_field_list = JailbreakEntryInfo::FIELD_NAMES_AS_ARRAY;
 
             let info_json = &json[field];
-            let info_json_field_list = json::get_object_field_list(&info_json);
+            let info_json_field_list = json::get_object_field_list(info_json);
             
             for info_field in info_field_list {
                 let info_field_exists_in_json = info_json_field_list.contains(&&info_field.to_string());
                 if !info_field_exists_in_json { continue }
 
-                info_object = match_info(info_object, &info_json, info_field);
+                info_object = match_info(info_object, info_json, info_field);
             }
 
             entry.info = info_object;
@@ -180,7 +180,7 @@ fn match_entry(
                 let mut compat: JailbreakEntryCompatibility = Default::default();
                 let field_list = json::get_object_field_list(json);
                 for field in field_list {
-                    compat = match_compat(compat, json, &field);
+                    compat = match_compat(compat, json, field);
                 }
                 compat
             }

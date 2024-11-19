@@ -46,14 +46,14 @@ pub struct OutputEntry {
 }
 
 pub struct OutputFormat {
-    value_vec: Vec<Value>,
+    pub value_vec: Vec<Value>,
     pub file_count: u32,
 }
 
 
 fn create_main_index_json_file(output_dir: &str) -> [fs::File; 2] {
     let main_index_json_path_array =
-        ["main.json", "index.json"].map(|str| [&output_dir, str].concat());
+        ["main.json", "index.json"].map(|str| [output_dir, str].concat());
     main_index_json_path_array.map(|path| {
         let mut ret = fs::OpenOptions::new()
             .append(true)
@@ -89,7 +89,7 @@ fn write_entry(
     let output_entry_tuple = match entry_type {
         EntryType::Os => os::process_entry(json_value, output.value_vec, output_dir, extra_input_value),
         EntryType::Device => device::process_entry(json_value, output.value_vec, extra_input_value),
-        EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec),
+        EntryType::DeviceGroup => device_group::process_entry(json_value, output.value_vec, extra_input_value),
         EntryType::Jailbreak => jailbreak::process_entry(json_value, output.value_vec),
         EntryType::Bypass => bypass::process_entry(json_value, output.value_vec),
     };
@@ -104,7 +104,7 @@ fn write_entry(
             .expect("Failed to write device JSON");
         output.file_count += 1;
 
-        let main_index_json_file_buf = vec![
+        let main_index_json_file_buf = [
             [output_entry.json, ",".to_string()].concat(),
             ["\"".to_string(), output_entry.key, "\",".to_string()].concat(),
         ];
@@ -133,7 +133,7 @@ pub fn create_entries(
         value_vec: Vec::new(),
         file_count: 0,
     };
-    let main_index_json_file_array = create_main_index_json_file(&output_dir);
+    let main_index_json_file_array = create_main_index_json_file(output_dir);
     let entry_list = filter_dir_recurse!(input_dir, "json");
 
     for entry in entry_list {
@@ -152,9 +152,6 @@ pub fn create_entries(
     }
 
     output = match entry_type {
-        #[cfg(feature = "api")]
-        EntryType::Os => os::finalise_entry(&output_dir_string, output),
-        #[cfg(feature = "adb_web")]
         EntryType::Os => os::finalise_entry(&output_dir_string, output),
         EntryType::DeviceGroup => device_group::finalise_entry(
             &output_dir_string,

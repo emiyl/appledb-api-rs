@@ -49,7 +49,7 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_
 
     let mut device_map: Vec<OsADBWebEntryDevice> = Vec::new();
     for device in os_entry.device_map.iter() {
-        let path = ["./out/device/key/", &device, ".json"].concat();
+        let path = ["./out/device/key/", device, ".json"].concat();
         let json_string = file::open_file_to_string(&path);
         let json_value = json::parse_json(&json_string);
         device_map.push(OsADBWebEntryDevice {
@@ -63,7 +63,7 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_
     let mut processed_devices_vec: Vec<String> = Vec::new();
 
     let group_value_vec = device_group_main_json_value.as_array().unwrap();
-    let group_entry_vec: Vec<device_group::DeviceGroupEntry> = group_value_vec.iter().map(|g| device_group::create_device_group_entry_from_json(g)).collect();
+    let group_entry_vec: Vec<device_group::DeviceGroupEntry> = group_value_vec.iter().map(device_group::create_device_group_entry_from_json).collect();
 
     for device in device_map.iter() {
         let device_key = &device.key;
@@ -77,7 +77,7 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_
             }
         }
 
-        if group.devices.len() < 1 {
+        if group.devices.is_empty() {
             group = device_group::DeviceGroupEntry {
                 name: device.name.clone(),
                 key: device.key.clone(),
@@ -108,8 +108,8 @@ pub fn convert_os_entry_to_os_adb_web_entry(os_entry: os::OsEntry, device_group_
         internal: os_entry.internal,
         preinstalled: os_entry.preinstalled,
         appledb_web: os_entry.appledb_web,
-        device_map: device_map,
-        device_group_map: device_group_map,
-        sources: sources
+        device_map,
+        device_group_map,
+        sources
     }
 }

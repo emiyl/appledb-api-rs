@@ -2,6 +2,14 @@
 mod common;
 mod adbweb_os;
 mod adbweb_device;
+mod adbweb_device_group;
+
+use serde_json::Value;
+use std::collections::BTreeMap;
+use peak_alloc::PeakAlloc;
+
+#[global_allocator]
+static PEAK_ALLOC: PeakAlloc = PeakAlloc;
 
 use crate::common::{create_entries, EntryType, file, json};
 
@@ -28,8 +36,30 @@ fn main() {
         &os_main_json_value
     );
 
-    let file_count = os_entry.file_count + device_entry.file_count;
+    let device_main_json_string = file::open_file_to_string("./out/adbweb/device/key/main.json");
+    let device_main_json_value = json::parse_json(&device_main_json_string);
+    let device_main_iter = device_main_json_value.as_array().unwrap().iter();
+    let mut device_main_map: BTreeMap<String, Value> = BTreeMap::new();
+
+    for device in device_main_iter {
+        device_main_map.insert(json::get_string(device, "key"), device.clone());
+    }
+
+    device_main_map.insert("os_main_json_value".to_string(), os_main_json_value);
+    let device_main_map_value = serde_json::to_value(device_main_map).unwrap();
+    
+    let device_group_entry = create_entries(
+        EntryType::DeviceGroup,
+        "./appledb/deviceGroupFiles/",
+        "./out/adbweb/device/group/",
+        &device_main_map_value
+    );
+
+    let file_count = os_entry.file_count + device_entry.file_count + device_group_entry.file_count;
     
     let elapsed = now.elapsed();
     println!("Processed {} files in {:.2?}", file_count, elapsed);
+
+    let peak_mem = PEAK_ALLOC.peak_usage_as_mb();
+    println!("PEAK_ALLOC: {:.2?} MB", peak_mem);
 }

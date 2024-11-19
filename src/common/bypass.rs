@@ -53,10 +53,12 @@ fn get_bypasses(
     let bypass_list = json.as_array().unwrap();
     let mut bypass_vec: Vec<BypassEntryBypass> = Vec::new();
     for bypass in bypass_list {
-        let mut new_bypass: BypassEntryBypass = Default::default();
+        let mut new_bypass = BypassEntryBypass {
+            name: json::get_string(bypass, "name"),
+            .. Default::default()
+        };
 
-        new_bypass.name = json::get_string(bypass, "name");
-        if new_bypass.name.len() < 1 { return entry }
+        if new_bypass.name.is_empty() { return entry }
 
         new_bypass = grab_bypass_from_json(new_bypass);
         new_bypass.notes = json::get_string(bypass, "notes");

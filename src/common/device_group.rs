@@ -53,6 +53,7 @@ pub fn create_device_group_entry_from_json(json: &Value) -> DeviceGroupEntry {
 pub fn process_entry(
     json_value: Value,
     mut value_vec: Vec<Value>,
+    extra_input_value: &Value
 ) -> (Vec<OutputEntry>, OutputFormat) {
     let device_group = create_device_group_entry_from_json(&json_value);
 
@@ -63,10 +64,16 @@ pub fn process_entry(
             value_vec.push(value);
         }
     }
+    
+    #[cfg(feature = "api")]
+    let json = serde_json::to_string(&device_group).expect("Failed to convert struct to JSON");
+    
+    #[cfg(feature = "adb_web")]
+    let json = serde_json::to_string(&crate::adbweb_device_group::convert_device_group_entry_to_device_group_adb_web_entry(device_group.clone(), extra_input_value)).expect("Failed to convert struct to JSON");
 
     (
         vec![OutputEntry {
-            json: serde_json::to_string(&device_group).expect("Failed to convert struct to JSON"),
+            json,
             key: device_group.key.to_owned(),
         }],
         OutputFormat {
