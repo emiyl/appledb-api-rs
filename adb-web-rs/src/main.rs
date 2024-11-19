@@ -79,5 +79,5 @@ fn main() {
     println!("Processed {} files in {:.2?}", file_count, elapsed);
 
     let peak_mem = PEAK_ALLOC.peak_usage_as_mb();
-    println!("PEAK_ALLOC: {:.2?} MB", peak_mem);*/
+    println!("PEAK_ALLOC: {:.2?} MB", peak_mem);
 }
