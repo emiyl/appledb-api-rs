@@ -16,6 +16,7 @@ use crate::common::{create_entries, EntryType, file, json};
 fn main() {
     let now = std::time::Instant::now();
 
+    let os_now = std::time::Instant::now();
     let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
     let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
 
@@ -26,6 +27,9 @@ fn main() {
         &device_group_main_json_value
     );
 
+    println!("OsEntry: Processed {} files in {:.2?}", os_entry.file_count, os_now.elapsed());
+
+    let device_now = std::time::Instant::now();
     let os_main_json_string = file::open_file_to_string("./out/firmware/main.json");
     let os_main_json_value = json::parse_json(&os_main_json_string);
 
@@ -36,6 +40,9 @@ fn main() {
         &os_main_json_value
     );
 
+    println!("DeviceEntry: Processed {} files in {:.2?}", device_entry.file_count, device_now.elapsed());
+
+    let device_group_now = std::time::Instant::now();
     let device_main_json_string = file::open_file_to_string("./out/adbweb/device/key/main.json");
     let device_main_json_value = json::parse_json(&device_main_json_string);
     let device_main_iter = device_main_json_value.as_array().unwrap().iter();
@@ -54,6 +61,8 @@ fn main() {
         "./out/adbweb/device/group/",
         &device_main_map_value
     );
+
+    println!("DeviceGroupEntry: Processed {} files in {:.2?}", device_group_entry.file_count, device_group_now.elapsed());
 
     let file_count = os_entry.file_count + device_entry.file_count + device_group_entry.file_count;
     
