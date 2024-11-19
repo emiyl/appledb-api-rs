@@ -9,6 +9,7 @@ edition = "2021"
 default = ["adb_web"]
 api = []
 adb_web = []
+node_fix_json = []
 
 [dependencies]
 peak_alloc = "0.2.1"
