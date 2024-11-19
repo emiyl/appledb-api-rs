@@ -17,9 +17,11 @@ fn main() {
     let now = std::time::Instant::now();
 
     let os_now = std::time::Instant::now();
+    println!("Opening ./out/device/group/main.json");
     let device_group_main_json_string = file::open_file_to_string("./out/device/group/main.json");
     let device_group_main_json_value = json::parse_json(&device_group_main_json_string);
 
+    println!("Creating OsEntry");
     let os_entry = create_entries(
         EntryType::Os,
         "./appledb/osFiles/",
@@ -30,9 +32,11 @@ fn main() {
     println!("OsEntry: Processed {} files in {:.2?}", os_entry.file_count, os_now.elapsed());
 
     let device_now = std::time::Instant::now();
+    println!("Opening ./out/firmware/main.json");
     let os_main_json_string = file::open_file_to_string("./out/firmware/main.json");
     let os_main_json_value = json::parse_json(&os_main_json_string);
 
+    println!("Creating DeviceEntry");
     let device_entry = create_entries(
         EntryType::Device,
         "./appledb/deviceFiles/",
@@ -43,6 +47,7 @@ fn main() {
     println!("DeviceEntry: Processed {} files in {:.2?}", device_entry.file_count, device_now.elapsed());
 
     let device_group_now = std::time::Instant::now();
+    println!("Opening ./out/adbweb/device/key/main.json");
     let device_main_json_string = file::open_file_to_string("./out/adbweb/device/key/main.json");
     let device_main_json_value = json::parse_json(&device_main_json_string);
     let device_main_iter = device_main_json_value.as_array().unwrap().iter();
@@ -55,6 +60,7 @@ fn main() {
     device_main_map.insert("os_main_json_value".to_string(), os_main_json_value);
     let device_main_map_value = serde_json::to_value(device_main_map).unwrap();
     
+    println!("Creating DeviceGroupEntry");
     let device_group_entry = create_entries(
         EntryType::DeviceGroup,
         "./appledb/deviceGroupFiles/",
