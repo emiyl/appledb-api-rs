@@ -32,7 +32,7 @@ pub fn convert_device_group_entry_to_device_group_adb_web_entry(device_group_ent
     let mut released: Vec<String> = Vec::new();
     let mut soc: Vec<String> = Vec::new();
     let mut arch: Vec<String> = Vec::new();
-    let mut firmwares: Vec<adbweb_device::DeviceADBWebEntryOsEntry> = Vec::new();
+    let mut firmwares_with_time: Vec<adbweb_device::DeviceADBWebEntryOsEntryWithTime> = Vec::new();
     let mut fw_key_vec: Vec<String> = Vec::new();
 
     let device_key_iter = device_group_entry.devices.clone().into_iter();
@@ -57,13 +57,15 @@ pub fn convert_device_group_entry_to_device_group_adb_web_entry(device_group_ent
         soc         = get_device_info_string(device, soc, "soc");
         arch        = get_device_info_string(device, arch, "arch");
 
-        (firmwares, fw_key_vec) = adbweb_device::get_firmwares_vec(
+        (firmwares_with_time, fw_key_vec) = adbweb_device::get_firmwares_vec(
             device["key"].as_str().unwrap().to_string(),
             &device_main_map_value["os_main_json_value"],
-            firmwares,
+            firmwares_with_time,
             fw_key_vec
         );    
     }
+
+    let firmwares = adbweb_device::parallel_merge_sort(firmwares_with_time).into_iter().map(|fw| fw.entry).collect();
 
     DeviceGroupADBWebEntry {
         name: device_group_entry.name,
