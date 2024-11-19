@@ -92,9 +92,23 @@ pub fn get_firmwares_vec(
 
         if !fw_key_vec.contains(&entry.key) {
             fw_key_vec.push(entry.key.clone());
+
+            let mut released_string = entry.released.clone();
+            if released_string.is_empty() {
+                released_string = "1970-01-01".to_string();
+            } else if released_string.len() == 7 {
+                released_string += "-01";
+            } else if released_string.len() == 4 {
+                released_string += "-01-01";
+            }
+            
+            if released_string.len() < 11 {
+                released_string += "T00:00:00-00:00";
+            }
+
             firmwares_vec.push(DeviceADBWebEntryOsEntryWithTime {
-                entry: entry.clone(),
-                time: DateTime::parse_from_rfc3339(entry.released.as_str())
+                entry,
+                time: DateTime::parse_from_rfc3339(released_string.as_str())
                     .unwrap()
                     .with_timezone(&Utc)
             });
